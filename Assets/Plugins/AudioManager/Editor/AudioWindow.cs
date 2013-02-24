@@ -32,8 +32,6 @@ public class AudioWindow : EditorWindow
 
         window.title = "Audio Manager";
 
-        window.position = new Rect(0,0, 200, 200);
-
         Debug.Log("loaded");
 	}
 
@@ -188,13 +186,19 @@ public class AudioWindow : EditorWindow
             // Path label
             EditorGUILayout.LabelField(Path.GetFileName(audioItem.Path), EditorStyles.boldLabel);
 
-            // Play button
-            if (GUILayout.Button("Play"))
+            if (AudioManager.Instance.IsAudioItemPlaying(audioItem))
             {
-                // Create a copy to play, to ensure it doesn't loop
-                var copy = new AudioItem {Path = audioItem.Path, Volume = audioItem.Volume};
+               if (GUILayout.Button("Stop"))
+               {
+                    AudioManager.Instance.StopAudioItem(audioItem);
+                    changedAudioCollection = true;
+               }
+            }
+            else if (GUILayout.Button("Play"))
+            {
+                AudioManager.Instance.PlaySound(audioItem);
 
-                AudioManager.Instance.PlaySound(copy);
+                changedAudioCollection = true;
             }
 
             // Delete button
@@ -229,6 +233,9 @@ public class AudioWindow : EditorWindow
                 // Remove the item if k is pressed
                 if (GUILayout.Button("Ok"))
                 {
+                    // Stop any sources with this sound from playing
+                    AudioManager.Instance.StopAudioItem(audioItem);
+                    
                     audioItems.Remove(itemToRemove);
                     
                     itemToRemove = null;

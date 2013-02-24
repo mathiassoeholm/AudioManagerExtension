@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using System.Collections;
 
@@ -68,6 +69,24 @@ public partial class AudioManager : MonoBehaviour
 	    // Use the audio manager instance to play a sound
         Instance.PlaySound(Instance.AudioItems[id]);
 	}
+
+    public bool IsAudioItemPlaying(AudioItem item)
+    {
+        return audioSources.Any(audioSource => audioSource.clip == item.Clip && audioSource.isPlaying);
+    }
+
+    public void StopAudioItem(AudioItem item)
+    {
+        audioSources.Where(audioSource => audioSource.clip == item.Clip).ToList().ForEach(audioSource => audioSource.Stop());
+    }
+
+    public void StopAllSounds()
+    {
+        foreach (AudioSource audioSource in audioSources)
+        {
+            audioSource.Stop();
+        }
+    }
 
     public void PlaySound(AudioItem audioItem)
     {

@@ -9,7 +9,7 @@ public class AudioManagerTest : MonoBehaviour
     {
 	    if (GUILayout.Button("Play a sound"))
 	    {
-	        AudioManager.PlayFuel_Pickup();
+	        //AudioManager.PlayFuel_Pickup();
 	    }
 	}
 }

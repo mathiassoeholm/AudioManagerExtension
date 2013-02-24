@@ -17,8 +17,4 @@ public partial class AudioManager
     {
         PlaySound(3);
     }
-    public static void PlayFuel_Pickup()
-    {
-        PlaySound(4);
-    }
 }
