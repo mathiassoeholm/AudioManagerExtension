@@ -3,6 +3,7 @@ DebugScreenshots
 Library
 Temp
 ProjectSettings
+Assets/Audio
 *.sln
 *.csproj
 *.meta
