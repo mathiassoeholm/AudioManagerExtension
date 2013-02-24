@@ -1,3 +1,13 @@
+# Beyond the standard template
+DebugScreenshots
+Library
+Temp
+ProjectSettings
+*.sln
+*.csproj
+*.meta
+*.unity
+
 # Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
 [Bb]in/
 [Oo]bj/
