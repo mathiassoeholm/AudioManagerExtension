@@ -44,8 +44,6 @@ public class AudioWindow : EditorWindow
         // Load audio items
         LoadAllAudioItems();
 
-        //ApplySoundsToManager();
-
         Debug.Log("static constructor");
     }
 
@@ -164,7 +162,7 @@ public class AudioWindow : EditorWindow
         audioManagerInstance = (GameObject)Instantiate(audioManager);
 
         // Hide new manager
-        audioManagerInstance.hideFlags = HideFlags.HideInHierarchy;
+        //audioManagerInstance.hideFlags = HideFlags.HideInHierarchy;
 
         Debug.Log("New maaaaanaaaaager");
     }
@@ -191,7 +189,13 @@ public class AudioWindow : EditorWindow
             EditorGUILayout.LabelField(Path.GetFileName(audioItem.Path), EditorStyles.boldLabel);
 
             // Play button
-            GUILayout.Button("Play");
+            if (GUILayout.Button("Play"))
+            {
+                // Create a copy to play, to ensure it doesn't loop
+                var copy = new AudioItem {Path = audioItem.Path, Volume = audioItem.Volume};
+
+                AudioManager.Instance.PlaySound(copy);
+            }
 
             // Delete button
             if (audioItem != itemToRemove)
@@ -228,6 +232,10 @@ public class AudioWindow : EditorWindow
                     audioItems.Remove(itemToRemove);
                     
                     itemToRemove = null;
+
+                    SaveAllAudioItems();
+
+                    InstantiateNewAudioManager();
                 }
 
                 // Reset color
@@ -259,10 +267,6 @@ public class AudioWindow : EditorWindow
 
         if (changedAudioCollection)
         {
-            SaveAllAudioItems();
-
-            InstantiateNewAudioManager();
-
             Repaint();
         }
     }

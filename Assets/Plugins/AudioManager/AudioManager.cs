@@ -11,7 +11,7 @@ public partial class AudioManager : MonoBehaviour
 
     private static AudioManager instance;
 
-    private static AudioManager Instance
+    public static AudioManager Instance
     {
         get
         {
@@ -37,9 +37,23 @@ public partial class AudioManager : MonoBehaviour
         }
     }
 
+    void Awake()
+    {
+        Object[] audioSorcesInScene = FindSceneObjectsOfType(typeof (AudioSource));
+        
+        // Destroy any previous audio sources used to play sounds in the editor
+        for (int i = audioSorcesInScene.Length - 1; i >= 0; i--)
+        {
+            Destroy((audioSorcesInScene[i] as AudioSource).gameObject);
+        }
+
+        // Reset audio sources list
+        audioSources = new List<AudioSource>();
+    }
+
 	void Start ()
     {
-	    // Play start on awake sounds
+        // Play start on awake sounds
 	    for (int i = 0; i < AudioItems.Length; i++)
 	    {
 	        if (AudioItems[i].PlayOnAwake)
@@ -55,7 +69,7 @@ public partial class AudioManager : MonoBehaviour
         Instance.PlaySound(Instance.AudioItems[id]);
 	}
 
-    private void PlaySound(AudioItem audioItem)
+    public void PlaySound(AudioItem audioItem)
     {
         // We need an audio source to play a sound
         var audioSource = new AudioSource();
@@ -79,7 +93,7 @@ public partial class AudioManager : MonoBehaviour
             // Create audio source
             audioSource = new GameObject("AudioSource").AddComponent<AudioSource>();
 
-            audioSource.gameObject.hideFlags = HideFlags.HideAndDontSave;
+            //audioSource.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
             // Add new audio source to our list
             audioSources.Add(audioSource);

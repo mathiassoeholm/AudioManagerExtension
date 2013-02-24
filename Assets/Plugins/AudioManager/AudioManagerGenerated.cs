@@ -17,16 +17,8 @@ public partial class AudioManager
     {
         PlaySound(3);
     }
-    public static void Playlaser_charge()
-    {
-        PlaySound(4);
-    }
     public static void PlayFuel_Pickup()
     {
-        PlaySound(5);
-    }
-    public static void PlayTheme_4_Dubstep()
-    {
-        PlaySound(6);
+        PlaySound(4);
     }
 }
