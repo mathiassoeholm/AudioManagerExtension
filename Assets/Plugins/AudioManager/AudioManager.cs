@@ -21,18 +21,11 @@ public partial class AudioManager : MonoBehaviour
 
                 if (objects.Length == 0)
                 {
-                    Debug.Log("There's no AudioManager in the scene, attempting to spawn one..");
-
-                    // Spawn the audio manager prefab
-                    instance =
-                        ((GameObject)
-                         Instantiate(Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab",
-                                                               typeof (GameObject)))).GetComponent<AudioManager>();
+                    Debug.LogError("No AudioManager was found in the scene, make sure you hit apply in the Audio Manager window");
                 }
                 else if (objects.Length > 1)
                 {
-                    Debug.LogError("AudioManager is a Singleton but several (" + objects.Length + ") were found in scene!");
-                    instance = (AudioManager)objects[0];
+                    Debug.LogError("Several Audio Managers were found in scene! You can only have one");
                 }
                 else
                 {
@@ -85,6 +78,8 @@ public partial class AudioManager : MonoBehaviour
         {
             // Create audio source
             audioSource = new GameObject("AudioSource").AddComponent<AudioSource>();
+
+            audioSource.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
             // Add new audio source to our list
             audioSources.Add(audioSource);
