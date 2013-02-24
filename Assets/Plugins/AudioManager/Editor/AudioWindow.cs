@@ -37,13 +37,16 @@ public class AudioWindow : EditorWindow
         Debug.Log("loaded");
 	}
 
-    /// <summary>
-    /// Static contructor, called when unity starts.
-    /// </summary>
     static AudioWindow()
     {
+        currentScene = EditorApplication.currentScene;
+        
         // Load audio items
         LoadAllAudioItems();
+
+        //ApplySoundsToManager();
+
+        Debug.Log("static constructor");
     }
 
     private void OnDestroy()
@@ -85,7 +88,7 @@ public class AudioWindow : EditorWindow
         EditorPrefs.SetInt("amountOfAudioItems", audioItems.Count);
     }
 
-    void ApplySoundsToManager()
+    static void ApplySoundsToManager()
     {
         var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
 
@@ -115,7 +118,7 @@ public class AudioWindow : EditorWindow
 
     private void OnSceneChange()
     {
-        Debug.Log("Changed scene");
+        Debug.Log("Changed scene to " + currentScene);
         
         // Instantiate new manager when changing scene
         InstantiateNewAudioManager();
@@ -123,11 +126,11 @@ public class AudioWindow : EditorWindow
 
     private void Update()
     {
-        //Debug.Log("updating");
-        
         // Check if we changed scene
         if (currentScene != EditorApplication.currentScene)
         {
+            Debug.Log("Changing scene from " + currentScene);
+            
             // Update which scene we are in
             currentScene = EditorApplication.currentScene;
 
@@ -144,6 +147,8 @@ public class AudioWindow : EditorWindow
 
     void InstantiateNewAudioManager()
     {
+        ApplySoundsToManager();
+        
         var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
         
         // Find other audio managers in the scene
@@ -160,12 +165,12 @@ public class AudioWindow : EditorWindow
 
         // Hide new manager
         audioManagerInstance.hideFlags = HideFlags.HideInHierarchy;
+
+        Debug.Log("New maaaaanaaaaager");
     }
 
     void OnGUI()
     {
-        Debug.Log("OnGUI");
-        
         bool changedAudioCollection = false;
 
         Color oldColor = GUI.color;
