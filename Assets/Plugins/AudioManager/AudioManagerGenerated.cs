@@ -1,20 +1,16 @@
 // THIS FILE IS AUTO GENERATED, DO NO MODIFY!
 public partial class AudioManager
 {
-    public static void PlayJetpack()
+    public static void Playlaser_charge()
     {
         PlaySound(0);
     }
-    public static void Playlaser_loop()
+    public static void Playlaser_end()
     {
         PlaySound(1);
     }
-    public static void Playlaser_end()
+    public static void PlayFuel_Pickup()
     {
         PlaySound(2);
-    }
-    public static void Playalarm4_loop()
-    {
-        PlaySound(3);
     }
 }

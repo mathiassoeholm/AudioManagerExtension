@@ -10,6 +10,8 @@ public class AudioManagerTest : MonoBehaviour
 	    if (GUILayout.Button("Play a sound"))
 	    {
 	        //AudioManager.PlayFuel_Pickup();
+
+            AudioManager.Playlaser_end();
 	    }
 	}
 }

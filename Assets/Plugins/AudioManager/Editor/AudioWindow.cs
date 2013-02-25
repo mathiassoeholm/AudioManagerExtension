@@ -45,18 +45,21 @@ public class AudioWindow : EditorWindow
         Debug.Log("static constructor");
     }
 
-    private void OnDestroy()
-    {
-        SaveAllAudioItems();
-
-        Debug.Log("Destroyed");
-    }
-
     private void OnLostFocus()
     {
         // Cancel removing an item when window loses focus
         itemToRemove = null;
+
+        // Repaint the window
         Repaint();
+    }
+
+    private void OnSceneChange()
+    {
+        Debug.Log("Changed scene to " + currentScene);
+        
+        // Instantiate new manager when changing scene
+        InstantiateNewAudioManager();
     }
 
     void OnDropAudioFile(string filePath)
@@ -76,48 +79,6 @@ public class AudioWindow : EditorWindow
 
         // Add the file to the list
         audioItems.Add(new AudioItem {Path = filePath, Volume = 1} );
-
-        // Save audio item
-        audioItems.Last().SaveItem(audioItems.Count - 1);
-
-        // Save new amount
-        EditorPrefs.SetInt("amountOfAudioItems", audioItems.Count);
-    }
-
-    static void ApplySoundsToManager()
-    {
-        var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
-
-        audioManager.GetComponent<AudioManager>().AudioItems = audioItems.ToArray();
-
-        // Generate AudioManager meethods
-        using (TextWriter writer = File.CreateText(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs"))
-        {
-            writer.WriteLine(@"// THIS FILE IS AUTO GENERATED, DO NO MODIFY!");
-            writer.WriteLine(@"public partial class AudioManager");
-            writer.WriteLine(@"{");
-
-            for (int i = 0; i < audioItems.Count; i++)
-            {
-                writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(audioItems[i].Path));
-                writer.WriteLine(@"    {");
-                writer.WriteLine(@"        PlaySound({0});", i);
-                writer.WriteLine(@"    }");
-            }
-
-            writer.WriteLine(@"}");
-        }
-
-        // Reimport generated file
-        AssetDatabase.ImportAsset(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs", ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
-    }
-
-    private void OnSceneChange()
-    {
-        Debug.Log("Changed scene to " + currentScene);
-        
-        // Instantiate new manager when changing scene
-        InstantiateNewAudioManager();
     }
 
     private void Update()
@@ -133,36 +94,6 @@ public class AudioWindow : EditorWindow
             // Call scene change method
             OnSceneChange();
         }
-        
-        if (audioManagerInstance == null)
-        {
-            // Instantiate new manager if current one is null
-            InstantiateNewAudioManager();
-        }
-    }
-
-    void InstantiateNewAudioManager()
-    {
-        ApplySoundsToManager();
-        
-        var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
-        
-        // Find other audio managers in the scene
-        var objects = FindObjectsOfType(typeof(AudioManager));
-
-        // Destoy other audio managers
-        for (int i = objects.Length - 1; i >= 0; i--)
-        {
-            DestroyImmediate((objects[i] as AudioManager).gameObject);
-        }
-
-        // Instantiate new manager
-        audioManagerInstance = (GameObject)Instantiate(audioManager);
-
-        // Hide new manager
-        //audioManagerInstance.hideFlags = HideFlags.HideInHierarchy;
-
-        Debug.Log("New maaaaanaaaaager");
     }
 
     void OnGUI()
@@ -188,11 +119,11 @@ public class AudioWindow : EditorWindow
 
             if (AudioManager.Instance.IsAudioItemPlaying(audioItem))
             {
-               if (GUILayout.Button("Stop"))
-               {
+                if (GUILayout.Button("Stop"))
+                {
                     AudioManager.Instance.StopAudioItem(audioItem);
                     changedAudioCollection = true;
-               }
+                }
             }
             else if (GUILayout.Button("Play"))
             {
@@ -263,11 +194,7 @@ public class AudioWindow : EditorWindow
 
         if (GUILayout.Button("Apply"))
         {
-            SaveAllAudioItems();
-
-            ApplySoundsToManager();
-
-            InstantiateNewAudioManager();
+            ApplyChanges();
         }
 
         GUILayout.EndScrollView();
@@ -276,6 +203,85 @@ public class AudioWindow : EditorWindow
         {
             Repaint();
         }
+    }
+
+    private void ApplyChanges()
+    {
+        // Stop removing any item
+        itemToRemove = null;
+        
+        // Stop all audio sources from playing
+        AudioManager.Instance.StopAllSounds();
+        
+        // Save state of editor using editorprefs
+        SaveAllAudioItems();
+        
+        // Apply modified properties to audio manager prefab
+        ApplySoundsToManager();
+        
+        // Generate partial AudioManager class
+        GenerateCode();
+
+        // Instantiate Audio Manager
+        InstantiateNewAudioManager();
+        
+        // Repaint
+        Repaint();
+    }
+
+    static void ApplySoundsToManager()
+    {
+        var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
+
+        audioManager.GetComponent<AudioManager>().AudioItems = audioItems.ToArray();
+    }
+
+    private void GenerateCode()
+    {
+        // Generate AudioManager meethods
+        using (TextWriter writer = File.CreateText(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs"))
+        {
+            writer.WriteLine(@"// THIS FILE IS AUTO GENERATED, DO NO MODIFY!");
+            writer.WriteLine(@"public partial class AudioManager");
+            writer.WriteLine(@"{");
+
+            for (int i = 0; i < audioItems.Count; i++)
+            {
+                writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(audioItems[i].Path));
+                writer.WriteLine(@"    {");
+                writer.WriteLine(@"        PlaySound({0});", i);
+                writer.WriteLine(@"    }");
+            }
+
+            writer.WriteLine(@"}");
+        }
+
+        // Reimport generated file
+        AssetDatabase.ImportAsset(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs", ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
+    }
+
+    void InstantiateNewAudioManager()
+    {
+        ApplySoundsToManager();
+        
+        var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
+        
+        // Find other audio managers in the scene
+        var objects = FindObjectsOfType(typeof(AudioManager));
+
+        // Destoy other audio managers
+        for (int i = objects.Length - 1; i >= 0; i--)
+        {
+            DestroyImmediate((objects[i] as AudioManager).gameObject);
+        }
+
+        // Instantiate new manager
+        audioManagerInstance = (GameObject)Instantiate(audioManager);
+
+        // Hide new manager
+        //audioManagerInstance.hideFlags = HideFlags.HideInHierarchy;
+
+        Debug.Log("New maaaaanaaaaager");
     }
 
     private static void LoadAllAudioItems()
@@ -301,9 +307,9 @@ public class AudioWindow : EditorWindow
         EditorPrefs.SetInt("amountOfAudioItems", audioItems.Count);
 
         // Save items
-        foreach (var audioItem in audioItems.Select((item, index) => new {item, index}))
+        for (int i = 0; i < audioItems.Count; i++)
         {
-            audioItem.item.SaveItem(audioItem.index);
+            audioItems[i].SaveItem(i);
         }
     }
 

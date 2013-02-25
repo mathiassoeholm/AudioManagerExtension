@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using System.Collections;
+using Object = UnityEngine.Object;
 
 public partial class AudioManager : MonoBehaviour
 {
@@ -63,6 +65,12 @@ public partial class AudioManager : MonoBehaviour
 	        }
 	    }
 	}
+
+    void OnApplicationQuit()
+    {
+        // Reset audio sources list
+        audioSources = new List<AudioSource>();
+    }
 	
 	static void PlaySound (int id)
     {
@@ -90,13 +98,17 @@ public partial class AudioManager : MonoBehaviour
 
     public void StopAllSounds()
     {
-        foreach (AudioSource audioSource in audioSources)
+        // Destroy all audio sources
+        for (int i = audioSources.Count - 1; i >= 0; i--)
         {
-            audioSource.Stop();
+            DestroyImmediate(audioSources[i].gameObject);
         }
+        
+        // Reset the list
+        audioSources = new List<AudioSource>();
     }
 
-    public void PlaySound(AudioItem audioItem)
+    public void PlaySound(AudioItem audioItem, Action onComplete = null)
     {
         // We need an audio source to play a sound
         var audioSource = new AudioSource();
