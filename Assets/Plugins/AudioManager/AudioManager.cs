@@ -77,7 +77,15 @@ public partial class AudioManager : MonoBehaviour
 
     public void StopAudioItem(AudioItem item)
     {
-        audioSources.Where(audioSource => audioSource.clip == item.Clip).ToList().ForEach(audioSource => audioSource.Stop());
+        // Destroy any audio sources with this sound
+        for (int i = audioSources.Count - 1; i >= 0; i--)
+        {
+            if (audioSources[i].clip == item.Clip)
+            {
+                DestroyImmediate(audioSources[i].gameObject);
+                audioSources.RemoveAt(i);
+            }
+        }
     }
 
     public void StopAllSounds()
