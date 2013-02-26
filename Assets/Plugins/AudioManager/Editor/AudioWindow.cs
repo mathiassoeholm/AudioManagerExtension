@@ -27,10 +27,15 @@ public class AudioWindow : EditorWindow
         // Get existing open window or if none, make a new one:
         window = (AudioWindow)GetWindow(typeof(AudioWindow));
 
+        window.title = "Audio Manager";
+
         // Load audio items
         LoadAllAudioItems();
 
-        window.title = "Audio Manager";
+        ApplySoundsToManager();
+
+        window.InstantiateNewAudioManager();
+
 
         Debug.Log("loaded");
 	}
