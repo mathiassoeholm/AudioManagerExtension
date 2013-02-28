@@ -88,6 +88,7 @@ public class AudioWindow : EditorWindow
 
     private void Update()
     {
+        Debug.Log(Application.dataPath);
         // Check if we changed scene
         if (currentScene != EditorApplication.currentScene)
         {
@@ -287,6 +288,28 @@ public class AudioWindow : EditorWindow
         //audioManagerInstance.hideFlags = HideFlags.HideInHierarchy;
 
         Debug.Log("New maaaaanaaaaager");
+    }
+
+    private static void LoadSerializedAudio()
+    {
+        if (!Directory.Exists(Application.persistentDataPath + @"\AudioSaveData"))
+        {
+            Directory.CreateDirectory(Application.persistentDataPath + @"\AudioSaveData");
+        }
+
+        using (var fileStream = new FileStream(Application.persistentDataPath + @"\AudioSaveData\AudioItems.dat",  FileMode.OpenOrCreate, FileAccess.Read))
+        {
+            var formatter = new BinaryFormatter();
+
+            fileStream.Position = 0;
+
+            if (fileStream.Length > 0)
+            {
+                audioItems = (List<AudioItem>)formatter.Deserialize(fileStream);
+
+
+            }
+        }
     }
 
     private static void LoadAllAudioItems()
