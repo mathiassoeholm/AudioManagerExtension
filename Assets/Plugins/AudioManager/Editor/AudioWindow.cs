@@ -33,7 +33,7 @@ public class AudioWindow : EditorWindow
         // Load audio items
         LoadSerializedAudio();
 
-        ApplySoundsToManager();
+        ApplySoundsToManagerPrefab();
 
         window.InstantiateNewAudioManager();
 
@@ -45,6 +45,8 @@ public class AudioWindow : EditorWindow
     {
         currentScene = EditorApplication.currentScene;
         
+        Debug.Log(Application.persistentDataPath);
+
         // Load audio items
         LoadSerializedAudio();
 
@@ -83,13 +85,14 @@ public class AudioWindow : EditorWindow
             return;
         }
 
+        Debug.Log("Added " + filePath);
+
         // Add the file to the list
         audioItems.Add(new AudioItem {Path = filePath, Volume = 1} );
     }
 
     private void Update()
     {
-        Debug.Log(Application.dataPath);
         // Check if we changed scene
         if (currentScene != EditorApplication.currentScene)
         {
@@ -224,7 +227,7 @@ public class AudioWindow : EditorWindow
         SaveSerializedAudio();
         
         // Apply modified properties to audio manager prefab
-        ApplySoundsToManager();
+        ApplySoundsToManagerPrefab();
         
         // Generate partial AudioManager class
         GenerateCode();
@@ -236,7 +239,7 @@ public class AudioWindow : EditorWindow
         Repaint();
     }
 
-    static void ApplySoundsToManager()
+    static void ApplySoundsToManagerPrefab()
     {
         var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
 
@@ -269,26 +272,9 @@ public class AudioWindow : EditorWindow
 
     void InstantiateNewAudioManager()
     {
-        ApplySoundsToManager();
-        
-        var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
-        
-        // Find other audio managers in the scene
-        var objects = FindObjectsOfType(typeof(AudioManager));
+        ApplySoundsToManagerPrefab();
 
-        // Destoy other audio managers
-        for (int i = objects.Length - 1; i >= 0; i--)
-        {
-            DestroyImmediate((objects[i] as AudioManager).gameObject);
-        }
-
-        // Instantiate new manager
-        audioManagerInstance = (GameObject)Instantiate(audioManager);
-
-        // Hide new manager
-        //audioManagerInstance.hideFlags = HideFlags.HideInHierarchy;
-
-        Debug.Log("New maaaaanaaaaager");
+        AudioManager.CreateNewInstance();
     }
 
     private static void SaveSerializedAudio()
@@ -353,6 +339,8 @@ public class AudioWindow : EditorWindow
 
                     // Save state of audio items
                     SaveSerializedAudio();
+
+                    ApplyChanges();
                 }
 
                 Event.current.Use();

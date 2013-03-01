@@ -24,11 +24,29 @@ public partial class AudioManager : MonoBehaviour
 
                 if (objects.Length == 0)
                 {
-                    Debug.LogError("No AudioManager was found in the scene, make sure you hit apply in the Audio Manager window");
+                    Debug.Log("No AudioManager was found in the scene, spawning one...");
+                    instance = new GameObject("AudioManage").AddComponent<AudioManager>();
                 }
                 else if (objects.Length > 1)
                 {
-                    Debug.LogError("Several Audio Managers were found in scene! You can only have one");
+                    Debug.Log("Several Audio Managers were found in scene! You can only have one.. Destroying others");
+
+                    // Destroy remaining audio managers
+                    for (int i = 1; i < objects.Length; i++)
+                    {
+                        GameObject gameObjectToDestroy = (objects[i] as AudioManager).gameObject;
+                        
+                        if (Application.isPlaying)
+                        {
+                            // Destroy in game
+                            Destroy(gameObjectToDestroy);
+                        }
+                        else
+                        {
+                            // Destroy in editor
+                            DestroyImmediate(gameObjectToDestroy);
+                        }
+                    }
                 }
                 else
                 {
@@ -38,6 +56,30 @@ public partial class AudioManager : MonoBehaviour
 
             return instance;
         }
+    }
+
+    public static void CreateNewInstance()
+    {
+        var objects = FindObjectsOfType(typeof(AudioManager));
+
+        // Destroy old audio managers
+        for (int i = 0; i < objects.Length; i++)
+        {
+            GameObject gameObjectToDestroy = (objects[i] as AudioManager).gameObject;
+            
+            if (Application.isPlaying)
+            {
+                // Destroy in game
+                Destroy(gameObjectToDestroy);
+            }
+            else
+            {
+                // Destroy in editor
+                DestroyImmediate(gameObjectToDestroy);
+            }
+        }
+
+        instance = new GameObject("AudioManage").AddComponent<AudioManager>();
     }
 
     void Awake()
