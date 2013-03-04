@@ -224,7 +224,7 @@ public class AudioWindow : EditorWindow
         AudioManager.Instance.StopAllSounds();
         
         // Save audio items
-        SaveSerializedAudio();
+        SaveAllAudioItems();
         
         // Apply modified properties to audio manager prefab
         ApplySoundsToManagerPrefab();
@@ -277,14 +277,6 @@ public class AudioWindow : EditorWindow
         AudioManager.CreateNewInstance();
     }
 
-    private static void SaveSerializedAudio()
-    {
-        using (var fileStream = new FileStream(Application.persistentDataPath + @"\AudioSaveData\AudioItems.dat", FileMode.Create, FileAccess.Write))
-        {
-            var formatter = new BinaryFormatter();
-            formatter.Serialize(fileStream, audioItems);
-        }
-    }
 
     private static void LoadAllAudioItems()
     {
@@ -342,7 +334,7 @@ public class AudioWindow : EditorWindow
                     }
 
                     // Save state of audio items
-                    SaveSerializedAudio();
+                    SaveAllAudioItems();
 
                     ApplyChanges();
                 }
