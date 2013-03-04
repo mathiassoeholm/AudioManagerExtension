@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.Serialization.Formatters.Binary;
 
 [InitializeOnLoad]
 public class AudioWindow : EditorWindow
@@ -32,7 +33,7 @@ public class AudioWindow : EditorWindow
         // Load audio items
         LoadAllAudioItems();
 
-        ApplySoundsToManager();
+        ApplySoundsToManagerPrefab();
 
         window.InstantiateNewAudioManager();
 
@@ -44,6 +45,8 @@ public class AudioWindow : EditorWindow
     {
         currentScene = EditorApplication.currentScene;
         
+        Debug.Log(Application.persistentDataPath);
+
         // Load audio items
         LoadAllAudioItems();
 
@@ -81,6 +84,8 @@ public class AudioWindow : EditorWindow
             // Return if the file is already in the list
             return;
         }
+
+        Debug.Log("Added " + filePath);
 
         // Add the file to the list
         audioItems.Add(new AudioItem {FilePath = filePath, Volume = 1} );
@@ -176,7 +181,7 @@ public class AudioWindow : EditorWindow
                     
                     itemToRemove = null;
 
-                    SaveAllAudioItems();
+                    LoadAllAudioItems();
 
                     InstantiateNewAudioManager();
                 }
@@ -218,11 +223,11 @@ public class AudioWindow : EditorWindow
         // Stop all audio sources from playing
         AudioManager.Instance.StopAllSounds();
         
-        // Save state of editor using editorprefs
-        SaveAllAudioItems();
+        // Save audio items
+        SaveSerializedAudio();
         
         // Apply modified properties to audio manager prefab
-        ApplySoundsToManager();
+        ApplySoundsToManagerPrefab();
         
         // Generate partial AudioManager class
         GenerateCode();
@@ -234,7 +239,7 @@ public class AudioWindow : EditorWindow
         Repaint();
     }
 
-    static void ApplySoundsToManager()
+    static void ApplySoundsToManagerPrefab()
     {
         var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
 
@@ -267,26 +272,18 @@ public class AudioWindow : EditorWindow
 
     void InstantiateNewAudioManager()
     {
-        ApplySoundsToManager();
-        
-        var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
-        
-        // Find other audio managers in the scene
-        var objects = FindObjectsOfType(typeof(AudioManager));
+        ApplySoundsToManagerPrefab();
 
-        // Destoy other audio managers
-        for (int i = objects.Length - 1; i >= 0; i--)
+        AudioManager.CreateNewInstance();
+    }
+
+    private static void SaveSerializedAudio()
+    {
+        using (var fileStream = new FileStream(Application.persistentDataPath + @"\AudioSaveData\AudioItems.dat", FileMode.Create, FileAccess.Write))
         {
-            DestroyImmediate((objects[i] as AudioManager).gameObject);
+            var formatter = new BinaryFormatter();
+            formatter.Serialize(fileStream, audioItems);
         }
-
-        // Instantiate new manager
-        audioManagerInstance = (GameObject)Instantiate(audioManager);
-
-        // Hide new manager
-        //audioManagerInstance.hideFlags = HideFlags.HideInHierarchy;
-
-        Debug.Log("New maaaaanaaaaager");
     }
 
     private static void LoadAllAudioItems()
@@ -345,7 +342,9 @@ public class AudioWindow : EditorWindow
                     }
 
                     // Save state of audio items
-                    SaveAllAudioItems();
+                    SaveSerializedAudio();
+
+                    ApplyChanges();
                 }
 
                 Event.current.Use();
@@ -353,4 +352,35 @@ public class AudioWindow : EditorWindow
                 break;
         }
     }
+
+    //private static void LoadAllAudioItems()
+    //{
+    //    audioItems = new List<AudioItem>();
+    //    EditorPrefs.GetInt("amountOfAudioItems"); 
+    //    // Load previous audio items
+    //    for (int i = 0; i < EditorPrefs.GetInt("amountOfAudioItems"); i++)
+    //    {
+    //        audioItems.Add(new AudioItem
+    //        {
+    //            Path = EditorPrefs.GetString(i + "_Path"),
+    //            Loop = EditorPrefs.GetBool(i + "_Loop"),
+    //            PlayOnAwake = EditorPrefs.GetBool(i + "_PlayOnAwake"),
+    //            Volume = EditorPrefs.GetFloat(i + "_Volume"),
+    //        });
+    //    }
+    //}
+
+    //void SaveAllAudioItems()
+    //{
+    //    // Save new amount
+    //    EditorPrefs.SetInt("amountOfAudioItems", audioItems.Count);
+
+    //    // Save items
+    //    for (int i = 0; i < audioItems.Count; i++)
+    //    {
+    //        audioItems[i].SaveItem(i);
+    //    }
+    //}
+
+    
 }

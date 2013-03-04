@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
 
 [Serializable]
-public class AudioItem
+public class AudioItem : ISerializable
 {
     private string filePath;
 
@@ -73,6 +74,14 @@ public class AudioItem
             writer.WriteLine("Loop=" + Loop);
             writer.WriteLine("Volume=" + Volume);
         }
+    }
+
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    {
+        info.AddValue("PlayOnAwake", PlayOnAwake);
+        info.AddValue("Loop", Loop);
+        info.AddValue("Volume", Volume);
+        info.AddValue("Volume", Volume);
     }
 }
 
