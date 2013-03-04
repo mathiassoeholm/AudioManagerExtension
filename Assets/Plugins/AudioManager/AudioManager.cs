@@ -22,10 +22,14 @@ public partial class AudioManager : MonoBehaviour
             {
                 var objects = FindObjectsOfType(typeof(AudioManager));
 
+
+
                 if (objects.Length == 0)
                 {
                     Debug.Log("No AudioManager was found in the scene, spawning one...");
-                    instance = new GameObject("AudioManage").AddComponent<AudioManager>();
+                    var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
+
+                    instance = (Instantiate(audioManager) as GameObject).GetComponent<AudioManager>();
                 }
                 else if (objects.Length > 1)
                 {
@@ -58,7 +62,7 @@ public partial class AudioManager : MonoBehaviour
         }
     }
 
-    public static void CreateNewInstance()
+    public static void CreateNewInstance(GameObject prefab)
     {
         var objects = FindObjectsOfType(typeof(AudioManager));
 
@@ -79,7 +83,7 @@ public partial class AudioManager : MonoBehaviour
             }
         }
 
-        instance = new GameObject("AudioManage").AddComponent<AudioManager>();
+        instance = (Instantiate(prefab) as GameObject).GetComponent<AudioManager>();
     }
 
     void Awake()

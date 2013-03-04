@@ -35,17 +35,12 @@ public class AudioWindow : EditorWindow
 
         ApplySoundsToManagerPrefab();
 
-        window.InstantiateNewAudioManager();
-
-
         Debug.Log("loaded");
 	}
 
     static AudioWindow()
     {
         currentScene = EditorApplication.currentScene;
-        
-        Debug.Log(Application.persistentDataPath);
 
         // Load audio items
         LoadAllAudioItems();
@@ -66,8 +61,7 @@ public class AudioWindow : EditorWindow
     {
         Debug.Log("Changed scene to " + currentScene);
         
-        // Instantiate new manager when changing scene
-        InstantiateNewAudioManager();
+        ApplySoundsToManagerPrefab();
     }
 
     void OnDropAudioFile(string filePath)
@@ -176,14 +170,16 @@ public class AudioWindow : EditorWindow
                 {
                     // Stop any sources with this sound from playing
                     AudioManager.Instance.StopAudioItem(audioItem);
-                    
+
+                    itemToRemove.DeleteSaveData();
+
                     audioItems.Remove(itemToRemove);
                     
                     itemToRemove = null;
 
                     LoadAllAudioItems();
 
-                    InstantiateNewAudioManager();
+                    ApplySoundsToManagerPrefab();
                 }
 
                 // Reset color
@@ -225,15 +221,13 @@ public class AudioWindow : EditorWindow
         
         // Save audio items
         SaveAllAudioItems();
-        
-        // Apply modified properties to audio manager prefab
-        ApplySoundsToManagerPrefab();
-        
+
         // Generate partial AudioManager class
         GenerateCode();
 
-        // Instantiate Audio Manager
-        InstantiateNewAudioManager();
+        // Apply modified properties to audio manager prefab
+        ApplySoundsToManagerPrefab();
+        
         
         // Repaint
         Repaint();
@@ -244,6 +238,8 @@ public class AudioWindow : EditorWindow
         var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
 
         audioManager.GetComponent<AudioManager>().AudioItems = audioItems.ToArray();
+
+        AudioManager.CreateNewInstance(audioManager);
     }
 
     private void GenerateCode()
@@ -270,17 +266,14 @@ public class AudioWindow : EditorWindow
         AssetDatabase.ImportAsset(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs", ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
     }
 
-    void InstantiateNewAudioManager()
-    {
-        ApplySoundsToManagerPrefab();
-
-        AudioManager.CreateNewInstance();
-    }
-
-
     private static void LoadAllAudioItems()
     {
         audioItems = new List<AudioItem>();
+
+        if (!Directory.Exists(@"ProjectSettings/AudioItems"))
+        {
+            Directory.CreateDirectory(@"ProjectSettings/AudioItems");
+        }
 
         foreach (string dataPath in Directory.GetFiles(@"ProjectSettings/AudioItems"))
         {
@@ -344,35 +337,4 @@ public class AudioWindow : EditorWindow
                 break;
         }
     }
-
-    //private static void LoadAllAudioItems()
-    //{
-    //    audioItems = new List<AudioItem>();
-    //    EditorPrefs.GetInt("amountOfAudioItems"); 
-    //    // Load previous audio items
-    //    for (int i = 0; i < EditorPrefs.GetInt("amountOfAudioItems"); i++)
-    //    {
-    //        audioItems.Add(new AudioItem
-    //        {
-    //            Path = EditorPrefs.GetString(i + "_Path"),
-    //            Loop = EditorPrefs.GetBool(i + "_Loop"),
-    //            PlayOnAwake = EditorPrefs.GetBool(i + "_PlayOnAwake"),
-    //            Volume = EditorPrefs.GetFloat(i + "_Volume"),
-    //        });
-    //    }
-    //}
-
-    //void SaveAllAudioItems()
-    //{
-    //    // Save new amount
-    //    EditorPrefs.SetInt("amountOfAudioItems", audioItems.Count);
-
-    //    // Save items
-    //    for (int i = 0; i < audioItems.Count; i++)
-    //    {
-    //        audioItems[i].SaveItem(i);
-    //    }
-    //}
-
-    
 }

@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 
 [Serializable]
-public class AudioItem : ISerializable
+public class AudioItem
 {
     private string filePath;
 
@@ -55,7 +55,7 @@ public class AudioItem : ISerializable
 
     public void DeleteSaveData()
     {
-        
+        File.Delete(@"ProjectSettings/AudioItems/audioitem_" + Path.GetFileName(FilePath) + ".txt");
     }
 
     public void SaveItem(int index)
@@ -74,14 +74,6 @@ public class AudioItem : ISerializable
             writer.WriteLine("Loop=" + Loop);
             writer.WriteLine("Volume=" + Volume);
         }
-    }
-
-    public void GetObjectData(SerializationInfo info, StreamingContext context)
-    {
-        info.AddValue("PlayOnAwake", PlayOnAwake);
-        info.AddValue("Loop", Loop);
-        info.AddValue("Volume", Volume);
-        info.AddValue("Volume", Volume);
     }
 }
 
