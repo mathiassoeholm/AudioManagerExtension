@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
@@ -8,11 +9,7 @@ using UnityEngine;
 [Serializable]
 public class AudioItem
 {
-    private bool playOnAwake;
-    private bool loop;
-    private bool is3D;
-    private string path;
-    private float volume;
+    private string filePath;
 
     public AudioClip Clip;
 
@@ -22,25 +19,60 @@ public class AudioItem
 
     public float Volume;
 
-    public string Path
+    public string FilePath
     {
-        get { return path; }
+        get { return filePath; }
         set
         {
             // Load audio clip
             Clip = (AudioClip)Resources.LoadAssetAtPath(value, typeof(AudioClip));
            
-            path = value;
+            filePath = value;
         }
+    }
+
+    public void LoadItem(string dataPath)
+    {
+        if (!File.Exists(dataPath))
+        {
+            Debug.Log("Tried loading audio item but no file exists");
+
+            return;
+        }
+
+        using (TextReader reader = File.OpenText(dataPath))
+        {
+            FilePath = reader.ReadLine().Split('=')[1];
+
+            Debug.Log("loaded FilePath was " + FilePath);
+
+            PlayOnAwake = Convert.ToBoolean(reader.ReadLine().Split('=')[1]);
+            Loop = Convert.ToBoolean(reader.ReadLine().Split('=')[1]);
+            Volume = (float)Convert.ToDouble(reader.ReadLine().Split('=')[1]);
+        }
+    }
+
+    public void DeleteSaveData()
+    {
+        
     }
 
     public void SaveItem(int index)
     {
-        // Save in editor prefs
-        EditorPrefs.SetString(index + "_Path", Path);
-        EditorPrefs.SetBool(index + "_PlayOnAwake", PlayOnAwake);
-        EditorPrefs.SetBool(index + "_Loop", Loop);
-        EditorPrefs.SetFloat(index + "_Volume", Volume);
+        Debug.Log("Saved item");
+
+        if (!Directory.Exists(@"ProjectSettings/AudioItems"))
+        {
+            Directory.CreateDirectory(@"ProjectSettings/AudioItems");
+        }
+
+        using (TextWriter writer = File.CreateText(@"ProjectSettings/AudioItems/audioitem_" + Path.GetFileName(FilePath) + ".txt"))
+        {
+            writer.WriteLine("FilePath=" + FilePath);
+            writer.WriteLine("PlayOnAwake=" + PlayOnAwake);
+            writer.WriteLine("Loop=" + Loop);
+            writer.WriteLine("Volume=" + Volume);
+        }
     }
 }
 

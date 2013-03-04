@@ -76,19 +76,18 @@ public class AudioWindow : EditorWindow
             && extension != ".ogg"
             && extension != ".wma"
             && extension != ".mp3"
-            ) || audioItems.Select(item => item.Path).Contains(filePath))
+            ) || audioItems.Select(item => item.FilePath).Contains(filePath))
         {
             // Return if the file is already in the list
             return;
         }
 
         // Add the file to the list
-        audioItems.Add(new AudioItem {Path = filePath, Volume = 1} );
+        audioItems.Add(new AudioItem {FilePath = filePath, Volume = 1} );
     }
 
     private void Update()
     {
-        Debug.Log(Application.dataPath);
         // Check if we changed scene
         if (currentScene != EditorApplication.currentScene)
         {
@@ -120,8 +119,8 @@ public class AudioWindow : EditorWindow
         {
             EditorGUILayout.BeginHorizontal();
             
-            // Path label
-            EditorGUILayout.LabelField(Path.GetFileName(audioItem.Path), EditorStyles.boldLabel);
+            // FilePath label
+            EditorGUILayout.LabelField(Path.GetFileName(audioItem.FilePath), EditorStyles.boldLabel);
 
             if (AudioManager.Instance.IsAudioItemPlaying(audioItem))
             {
@@ -253,7 +252,7 @@ public class AudioWindow : EditorWindow
 
             for (int i = 0; i < audioItems.Count; i++)
             {
-                writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(audioItems[i].Path));
+                writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(audioItems[i].FilePath));
                 writer.WriteLine(@"    {");
                 writer.WriteLine(@"        PlaySound({0});", i);
                 writer.WriteLine(@"    }");
@@ -290,42 +289,15 @@ public class AudioWindow : EditorWindow
         Debug.Log("New maaaaanaaaaager");
     }
 
-    private static void LoadSerializedAudio()
-    {
-        if (!Directory.Exists(Application.persistentDataPath + @"\AudioSaveData"))
-        {
-            Directory.CreateDirectory(Application.persistentDataPath + @"\AudioSaveData");
-        }
-
-        using (var fileStream = new FileStream(Application.persistentDataPath + @"\AudioSaveData\AudioItems.dat",  FileMode.OpenOrCreate, FileAccess.Read))
-        {
-            var formatter = new BinaryFormatter();
-
-            fileStream.Position = 0;
-
-            if (fileStream.Length > 0)
-            {
-                audioItems = (List<AudioItem>)formatter.Deserialize(fileStream);
-
-
-            }
-        }
-    }
-
     private static void LoadAllAudioItems()
     {
         audioItems = new List<AudioItem>();
-        
-        // Load previous audio items
-        for (int i = 0; i < EditorPrefs.GetInt("amountOfAudioItems"); i++)
+
+        foreach (string dataPath in Directory.GetFiles(@"ProjectSettings/AudioItems"))
         {
-            audioItems.Add(new AudioItem
-            {
-                Path = EditorPrefs.GetString(i + "_Path"),
-                Loop = EditorPrefs.GetBool(i + "_Loop"),
-                PlayOnAwake = EditorPrefs.GetBool(i + "_PlayOnAwake"),
-                Volume = EditorPrefs.GetFloat(i + "_Volume"),
-            });
+            AudioItem audioItem = new AudioItem();
+            audioItem.LoadItem(dataPath);
+            audioItems.Add(audioItem);
         }
     }
 
