@@ -8,6 +8,7 @@ Assets/Audio
 *.csproj
 *.meta
 *.unity
+ProjectSettings/AudioItems
 
 # Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
 [Bb]in/
