@@ -22,8 +22,6 @@ public partial class AudioManager : MonoBehaviour
             {
                 var objects = FindObjectsOfType(typeof(AudioManager));
 
-
-
                 if (objects.Length == 0)
                 {
                     Debug.Log("No AudioManager was found in the scene, spawning one...");
@@ -118,7 +116,18 @@ public partial class AudioManager : MonoBehaviour
         audioSources = new List<AudioSource>();
     }
 	
-	static void PlaySound (int id)
+    private static void StopSound(int id)
+    {
+        foreach (AudioSource audioSource in Instance.audioSources)
+        {
+            if (audioSource.clip == Instance.AudioItems[id].Clip)
+            {
+                audioSource.Stop();
+            }
+        }
+    }
+
+	private static void PlaySound (int id)
     {
 	    // Use the audio manager instance to play a sound
         Instance.PlaySound(Instance.AudioItems[id]);

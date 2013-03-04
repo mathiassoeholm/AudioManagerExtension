@@ -253,9 +253,16 @@ public class AudioWindow : EditorWindow
 
             for (int i = 0; i < audioItems.Count; i++)
             {
+                // PLay sound method
                 writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(audioItems[i].FilePath));
                 writer.WriteLine(@"    {");
                 writer.WriteLine(@"        PlaySound({0});", i);
+                writer.WriteLine(@"    }");
+
+                // Stop sound method
+                writer.WriteLine(@"    public static void Stop{0}()", Path.GetFileNameWithoutExtension(audioItems[i].FilePath));
+                writer.WriteLine(@"    {");
+                writer.WriteLine(@"        StopSound({0});", i);
                 writer.WriteLine(@"    }");
             }
 
