@@ -58,10 +58,8 @@ public class AudioItem
         File.Delete(@"ProjectSettings/AudioItems/audioitem_" + Path.GetFileName(FilePath) + ".txt");
     }
 
-    public void SaveItem(int index)
+    public void SaveItem()
     {
-        Debug.Log("Saved item");
-
         if (!Directory.Exists(@"ProjectSettings/AudioItems"))
         {
             Directory.CreateDirectory(@"ProjectSettings/AudioItems");
@@ -74,6 +72,8 @@ public class AudioItem
             writer.WriteLine("Loop=" + Loop);
             writer.WriteLine("Volume=" + Volume);
         }
+
+        Debug.Log("Saved item");
     }
 }
 
