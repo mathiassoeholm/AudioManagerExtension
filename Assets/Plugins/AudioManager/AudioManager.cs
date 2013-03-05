@@ -106,7 +106,7 @@ public partial class AudioManager : MonoBehaviour
 	    {
 	        if (AudioItems[i].PlayOnAwake)
 	        {
-                PlaySound(i); 
+                PlaySound(i, AudioItems[i].Volume); 
 	        }
 	    }
 	}
@@ -116,7 +116,13 @@ public partial class AudioManager : MonoBehaviour
         // Reset audio sources list
         audioSources = new List<AudioSource>();
     }
-	
+
+    private static void PlaySound (int id, float volume)
+    {
+        // Use the audio manager instance to play a sound
+        Instance.PlaySound(Instance.AudioItems[id], volume);
+    }
+
     private static void StopSound(int id)
     {
         foreach (AudioSource audioSource in Instance.audioSources)
@@ -127,12 +133,6 @@ public partial class AudioManager : MonoBehaviour
             }
         }
     }
-
-	private static void PlaySound (int id)
-    {
-	    // Use the audio manager instance to play a sound
-        Instance.PlaySound(Instance.AudioItems[id]);
-	}
 
     public bool IsAudioItemPlaying(AudioItem item)
     {
@@ -164,7 +164,12 @@ public partial class AudioManager : MonoBehaviour
         audioSources = new List<AudioSource>();
     }
 
-    public void PlaySound(AudioItem audioItem, Action onComplete = null)
+    public void PlaySound(AudioItem audioItem)
+    {
+        PlaySound(audioItem, audioItem.Volume);
+    }
+
+    public void PlaySound(AudioItem audioItem, float volume)
     {
         // We need an audio source to play a sound
         var audioSource = new AudioSource();
@@ -200,7 +205,7 @@ public partial class AudioManager : MonoBehaviour
         audioSource.clip = audioItem.Clip;
 
         // Set volume
-        audioSource.volume = audioItem.Volume;
+        audioSource.volume = volume;
 
         // Play the clip with the selected audio source
         audioSource.Play();

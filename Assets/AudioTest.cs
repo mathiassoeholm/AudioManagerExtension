@@ -15,12 +15,12 @@ public class AudioTest : MonoBehaviour
     {
         if (GUILayout.Button("Play sound"))
         {
-            //AudioManager.PlayTheme_4_Dubstep();
+            AudioManager.PlayTheme_4_Dubstep(0.1f);
         }
 
         if (GUILayout.Button("Stop sound"))
         {
-            //AudioManager.StopTheme_4_Dubstep();
+            AudioManager.StopTheme_4_Dubstep();
         }
 	}
 }

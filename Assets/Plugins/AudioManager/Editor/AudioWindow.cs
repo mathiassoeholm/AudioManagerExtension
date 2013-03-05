@@ -296,7 +296,13 @@ public class AudioWindow : EditorWindow
                 // PLay sound method
                 writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(audioItems[i].FilePath));
                 writer.WriteLine(@"    {");
-                writer.WriteLine(@"        PlaySound({0});", i);
+                writer.WriteLine(@"        PlaySound({0},{1}f);", i, audioItems[i].Volume);
+                writer.WriteLine(@"    }");
+
+                // PLay sound method
+                writer.WriteLine(@"    public static void Play{0}(float volume)", Path.GetFileNameWithoutExtension(audioItems[i].FilePath));
+                writer.WriteLine(@"    {");
+                writer.WriteLine(@"        PlaySound({0},volume);", i);
                 writer.WriteLine(@"    }");
 
                 // Stop sound method
