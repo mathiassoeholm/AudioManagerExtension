@@ -20,7 +20,8 @@ public partial class AudioManager : MonoBehaviour
         {
             if (instance == null)
             {
-                var objects = FindObjectsOfType(typeof(AudioManager));
+                Object[] objects;
+                objects = FindObjectsOfType(typeof(AudioManager));
 
                 if (objects.Length == 0)
                 {

@@ -132,23 +132,10 @@ public class AudioWindow : EditorWindow
                 // Remove the item if ok is pressed
                 if (GUILayout.Button("Ok"))
                 {
-                    // Stop any sources with this sound from playing
-                    AudioManager.Instance.StopAudioItem(audioItem);
+                    RemoveAudioItem(itemToRemove);
 
-                    // Delete the audio items saved data
-                    itemToRemove.DeleteSaveData();
-
-                    // Remove the audio item from the original list
-                    audioItems.Remove(itemToRemove);
-                    
                     // Stop removing an item
                     itemToRemove = null;
-
-                    // Reload audio items
-                    LoadAllAudioItems();
-
-                    // Apply sounds to the manager
-                    ApplySoundsToManagerPrefab();
                 }
 
                 // Reset color
@@ -233,6 +220,24 @@ public class AudioWindow : EditorWindow
         audioItems.Add(new AudioItem {FilePath = filePath, Volume = 1} );
 
         Debug.Log("Added " + filePath);
+    }
+
+    public static void RemoveAudioItem(AudioItem item)
+    {
+        // Stop any sources with this sound from playing
+        AudioManager.Instance.StopAudioItem(item);
+
+        // Delete the audio items saved data
+        item.DeleteSaveData();
+
+        // Remove the audio item from the original list
+        audioItems.Remove(item);
+
+        // Reload audio items
+        LoadAllAudioItems();
+
+        // Apply sounds to the manager
+        ApplySoundsToManagerPrefab();
     }
 
     /// <summary>
@@ -338,7 +343,7 @@ public class AudioWindow : EditorWindow
     void SaveAllAudioItems()
     {
         // Save items
-        foreach (AudioItem audioItem in audioItems)
+        foreach (AudioItem audioItem in audioItems.ToArray())
         {
             audioItem.SaveItem();
         }
@@ -388,7 +393,6 @@ public class AudioWindow : EditorWindow
                 }
 
                 Event.current.Use();
-
                 break;
         }
     }
