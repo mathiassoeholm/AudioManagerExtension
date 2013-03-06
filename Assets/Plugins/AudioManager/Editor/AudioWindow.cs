@@ -222,6 +222,12 @@ public class AudioWindow : EditorWindow
         Debug.Log("Added " + filePath);
     }
 
+    /// <summary>
+    /// Removes an audio item and deletes its save data.
+    /// </summary>
+    /// <param name="item">
+    /// The item to delete.
+    /// </param>
     public static void RemoveAudioItem(AudioItem item)
     {
         // Stop any sources with this sound from playing
@@ -385,8 +391,8 @@ public class AudioWindow : EditorWindow
                     // Register that the drag event has been handled
                     DragAndDrop.AcceptDrag();
 
-                    // Call OnDropAudioFile for each file that was dropped
-                    foreach (string path in DragAndDrop.paths)
+                    // Call OnDropAudioFile for each file that was dropped in alphabetical order
+                    foreach (string path in DragAndDrop.paths.ToList().OrderBy(s => s))
                     {
                         OnDropAudioFile(path);
                     }
