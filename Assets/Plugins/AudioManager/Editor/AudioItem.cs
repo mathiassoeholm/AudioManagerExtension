@@ -13,19 +13,15 @@ public class AudioItem
 
     public float Volume = 1;
 
-    private string filePath;
+    public string Name;
 
-    public string FilePath
+    public string FilePath;
+
+    public void LoadAudioClipFromPath()
     {
-        get { return filePath; }
-        set
-        {
-            // Load and assign audio clip
-            Clip = (AudioClip)Resources.LoadAssetAtPath(value, typeof(AudioClip));
-           
-            // Assign file path
-            filePath = value;
-        }
+        Name = Path.GetFileName(FilePath);
+        
+        Clip = (AudioClip)Resources.LoadAssetAtPath(FilePath, typeof(AudioClip));
     }
 }
 

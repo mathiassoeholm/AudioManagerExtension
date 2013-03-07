@@ -9,18 +9,16 @@ public partial class AudioManager : MonoBehaviour
 {
     public AudioItem[] AudioItems;
 
+    public AudioManagerSettings Settings;
+
     // List keeping track of all audio sources in the scene, used to play sound effects
     private List<AudioSource> audioSources = new List<AudioSource>();
 
+    private static AudioManager instance;
+
     void Awake()
     {
-        Object[] audioSorcesInScene = FindSceneObjectsOfType(typeof (AudioSource));
-        
-        // Destroy any previous audio sources used to play sounds in the editor
-        for (int i = audioSorcesInScene.Length - 1; i >= 0; i--)
-        {
-            Destroy((audioSorcesInScene[i] as AudioSource).gameObject);
-        }
+        instance = this;
 
         // Reset audio sources list
         audioSources = new List<AudioSource>();
@@ -47,18 +45,18 @@ public partial class AudioManager : MonoBehaviour
     private static void PlaySound (int id, float volume)
     {
         // Use the audio manager instance to play a sound
-       // Instance.PlaySound(Instance.AudioItems[id], volume);
+        instance.PlaySound(instance.AudioItems[id], volume);
     }
 
     private static void StopSound(int id)
     {
-        //foreach (AudioSource audioSource in Instance.audioSources)
-        //{
-        //    if (audioSource.clip == Instance.AudioItems[id].Clip)
-        //    {
-        //        audioSource.Stop();
-        //    }
-        //}
+        foreach (AudioSource audioSource in instance.audioSources)
+        {
+            if (audioSource.clip == instance.AudioItems[id].Clip)
+            {
+                audioSource.Stop();
+            }
+        }
     }
 
     public bool IsAudioItemPlaying(AudioItem item)
@@ -132,7 +130,7 @@ public partial class AudioManager : MonoBehaviour
         audioSource.clip = audioItem.Clip;
 
         // Set volume
-        audioSource.volume = volume;
+        audioSource.volume = volume * Settings.MasterVolume;
 
         // Play the clip with the selected audio source
         audioSource.Play();

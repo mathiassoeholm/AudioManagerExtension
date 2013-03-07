@@ -18,6 +18,12 @@ public class AudioWindow : EditorWindow
 
     private AudioManager audioManagerPrefab;
 
+    private int selectedAudioIndex;
+
+    private bool removeITemToRemove;
+
+    private bool requireRepaint;
+
     private AudioManager AudioManagerPrefab
     {
         get
@@ -76,103 +82,40 @@ public class AudioWindow : EditorWindow
         }
         else
         {
-            // Clone audio items from prefab to scene instance
+            // Clone audio items and settings from prefab to scene instance
             audioManagerInScene.AudioItems = audioManagerPrefab.AudioItems;
+            audioManagerInScene.Settings = audioManagerPrefab.Settings;
         }
     }
 
     private void OnGUI()
     {
         // This gets set to true if the gui needs repaint during this method
-        bool requireRepaint = false;
+        requireRepaint = false;
 
         // Cache the old color
         Color oldColor = GUI.color;
 
-        // Renders the drop area
-        DropAreaGui();
+        DrawSeperator("Global Settings");
 
-        // Begin a scrollview
-        scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.ExpandWidth(true), GUILayout.ExpandWidth(true));
+        GUILayout.BeginHorizontal();
+        AudioManagerPrefab.Settings.MasterVolume = 0.01f * EditorGUILayout.Slider("Volume", AudioManagerPrefab.Settings.MasterVolume * 100, 0, 100);
+        GUILayout.Label("%");
+        GUILayout.EndHorizontal();
 
-        bool removeITemToRemove = false;
 
-        // Runs through a copy of the audio item collection, this enables us to remove from the original collection
-        foreach (AudioItem audioItem in AudioManagerPrefab.AudioItems)
+        DrawSeperator("Audio Files");
+
+
+        if (AudioManagerPrefab.AudioItems.Length > 0)
         {
-            // Begin a horizontal layout for path, play btn and remove btn
-            EditorGUILayout.BeginHorizontal();
-            
-            // FilePath label
-            EditorGUILayout.LabelField(Path.GetFileName(audioItem.FilePath), EditorStyles.boldLabel);
-
-            // If the sound is playing, allow us to stop it
-            if (AudioManagerPrefab.IsAudioItemPlaying(audioItem))
-            {
-                if (GUILayout.Button("Stop"))
-                {
-                    AudioManagerPrefab.StopAudioItem(audioItem);
-                    requireRepaint = true;
-                }
-            }
-            else if (GUILayout.Button("Play"))
-            {
-                AudioManagerPrefab.PlaySound(audioItem);
-
-                requireRepaint = true;
-            }
-
-            // Make sure this audio item is not currently being removed
-            if (audioItem != itemToRemove)
-            {
-                // Change color to red
-                GUI.color = new Color(1, 0.3f, 0.3f);
-                
-                if (GUILayout.Button("Remove"))
-                {
-                    requireRepaint = true;
-
-                    itemToRemove = audioItem;
-                }
-
-                // Reset color
-                GUI.color = oldColor;
-            }
-            else
-            {
-                // Don't remove if nope is pressed
-                if (GUILayout.Button("Nope"))
-                {
-                    itemToRemove = null;
-                }
-                
-                // Change color to red
-                GUI.color = new Color(1, 0.3f, 0.3f);
-                
-                // Remove the item if ok is pressed
-                if (GUILayout.Button("Ok"))
-                {
-                    // This will make sure we remove the audio item, after loop has finished
-                    removeITemToRemove = true;
-                }
-
-                // Reset color
-                GUI.color = oldColor;
-            }
-
-            // End the top horizontal layout for this item
-            EditorGUILayout.EndHorizontal();
-
-            // Volume slider
-            audioItem.Volume = EditorGUILayout.Slider("Volume", audioItem.Volume, 0, 1);
-
-            // Looping toggle
-            audioItem.Loop = EditorGUILayout.Toggle("Looping", audioItem.Loop);
-
-            // Play on awake toggle
-            audioItem.PlayOnAwake = EditorGUILayout.Toggle("Play on Awake", audioItem.PlayOnAwake);
+            selectedAudioIndex = EditorGUILayout.Popup(selectedAudioIndex,
+                                                     AudioManagerPrefab.AudioItems.Select(a => a.Name).ToArray());
+ 
+            DrawAudioItemGui(AudioManagerPrefab.AudioItems[selectedAudioIndex]);
         }
 
+        
         if (removeITemToRemove)
         {
             RemoveAudioItem(itemToRemove);
@@ -181,20 +124,105 @@ public class AudioWindow : EditorWindow
             itemToRemove = null;
         }
 
-        // Apply all changes if we hit the apply button
-        if (GUILayout.Button("Apply"))
-        {
-            ApplyChanges();
-        }
+        
 
-        // End scrollable view
-        GUILayout.EndScrollView();
+        // Renders the drop area
+        DropAreaGui();
 
         if (requireRepaint)
         {
             Repaint();
         }
     }
+
+    private void DrawAudioItemGui(AudioItem audioItem)
+    {
+        // Cache the old color
+        Color oldColor = GUI.color;
+
+        EditorGUILayout.BeginHorizontal();
+
+        // If the sound is playing, allow us to stop it
+        if (AudioManagerPrefab.IsAudioItemPlaying(audioItem))
+        {
+            if (GUILayout.Button("Stop"))
+            {
+                AudioManagerPrefab.StopAudioItem(audioItem);
+                requireRepaint = true;
+            }
+        }
+        else if (GUILayout.Button("Play"))
+        {
+            AudioManagerPrefab.PlaySound(audioItem);
+
+            requireRepaint = true;
+        }
+
+        // Make sure this audio item is not currently being removed
+        if (audioItem != itemToRemove)
+        {
+            // Change color to red
+            GUI.color = new Color(1, 0.3f, 0.3f);
+
+            if (GUILayout.Button("Remove"))
+            {
+                requireRepaint = true;
+
+                itemToRemove = audioItem;
+            }
+
+            // Reset color
+            GUI.color = oldColor;
+        }
+        else
+        {
+            // Don't remove if nope is pressed
+            if (GUILayout.Button("Nope"))
+            {
+                itemToRemove = null;
+            }
+
+            // Change color to red
+            GUI.color = new Color(1, 0.3f, 0.3f);
+
+            // Remove the item if ok is pressed
+            if (GUILayout.Button("Ok"))
+            {
+                // This will make sure we remove the audio item, after loop has finished
+                removeITemToRemove = true;
+            }
+
+            // Reset color
+            GUI.color = oldColor;
+        }
+
+        // End the top horizontal layout for this item
+        EditorGUILayout.EndHorizontal();
+
+        // Volume slider
+        audioItem.Volume = EditorGUILayout.Slider("Volume", audioItem.Volume, 0, 1);
+
+        // Looping toggle
+        audioItem.Loop = EditorGUILayout.Toggle("Looping", audioItem.Loop);
+
+        // Play on awake toggle
+        audioItem.PlayOnAwake = EditorGUILayout.Toggle("Play on Awake", audioItem.PlayOnAwake);
+    }
+
+    private void DrawSeperator(string text)
+    {
+        // Cache the old color
+        Color oldColor = GUI.color;
+        
+        GUI.color = new Color(0.7f, 0.7f, 1);
+
+        Rect seperator = GUILayoutUtility.GetRect(0, 20, GUILayout.ExpandWidth(true));
+        GUI.Box(seperator, text);
+
+        // Reset color
+        GUI.color = oldColor;
+    }
+
 
     /// <summary>
     /// This is automaticly called when the window loses focus.
@@ -233,7 +261,9 @@ public class AudioWindow : EditorWindow
 
         // Add an audio item to the array
         List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
-        audioItems.Add(new AudioItem { FilePath = filePath, Volume = 1 });
+        AudioItem newAudiItem = new AudioItem {FilePath = filePath, Volume = 1};
+        newAudiItem.LoadAudioClipFromPath();
+        audioItems.Add(newAudiItem);
         audioManagerPrefab.AudioItems = audioItems.ToArray();
         
         Debug.Log("Added " + filePath);
@@ -254,6 +284,8 @@ public class AudioWindow : EditorWindow
         List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
         audioItems.Remove(item);
         audioManagerPrefab.AudioItems = audioItems.ToArray();
+
+        ApplyChanges();
     }
 
     /// <summary>
@@ -261,9 +293,6 @@ public class AudioWindow : EditorWindow
     /// </summary>
     private void ApplyChanges()
     {
-        // Stop removing any item
-        itemToRemove = null;
-        
         // Generate partial AudioManager class
         GenerateCode();
         
@@ -319,7 +348,7 @@ public class AudioWindow : EditorWindow
         Event evt = Event.current;
 
         // Draw drop area box
-        Rect dropArea = GUILayoutUtility.GetRect(0, 50, GUILayout.ExpandWidth(true));
+        Rect dropArea = GUILayoutUtility.GetRect(0, 50, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
         GUI.Box(dropArea, "Drop sounds here");
 
         switch (evt.type)
@@ -347,6 +376,8 @@ public class AudioWindow : EditorWindow
                         OnDropAudioFile(path);
                     }
                 }
+
+                ApplyChanges();
 
                 Event.current.Use();
                 break;
