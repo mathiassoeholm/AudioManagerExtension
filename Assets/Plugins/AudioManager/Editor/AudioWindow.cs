@@ -20,8 +20,6 @@ public class AudioWindow : EditorWindow
 
     private int selectedAudioIndex;
 
-    private bool removeITemToRemove;
-
     private bool requireRepaint;
 
     private AudioManager AudioManagerPrefab
@@ -69,13 +67,16 @@ public class AudioWindow : EditorWindow
                 {
                     if (i == 0)
                     {
+
+                        Debug.Log((audioManagers[i]).ToString());
+
                         // Assign to found audio manager
-                        audioManagerInScene = (audioManagers[i] as GameObject).GetComponent<AudioManager>();
+                        audioManagerInScene = (audioManagers[i] as AudioManager);
                     }
                     else
                     {
                         // Remove potential extra audio managers
-                        DestroyImmediate(audioManagers[i] as GameObject);
+                        DestroyImmediate((audioManagers[i] as AudioManager).gameObject);
                     }
                 }
             }
@@ -93,9 +94,6 @@ public class AudioWindow : EditorWindow
         // This gets set to true if the gui needs repaint during this method
         requireRepaint = false;
 
-        // Cache the old color
-        Color oldColor = GUI.color;
-
         DrawSeperator("Global Settings");
 
         GUILayout.BeginHorizontal();
@@ -112,25 +110,20 @@ public class AudioWindow : EditorWindow
             selectedAudioIndex = EditorGUILayout.Popup(selectedAudioIndex,
                                                      AudioManagerPrefab.AudioItems.Select(a => a.Name).ToArray());
  
+            Debug.Log("Selected audio index " + selectedAudioIndex);
+
             DrawAudioItemGui(AudioManagerPrefab.AudioItems[selectedAudioIndex]);
         }
-
-        
-        if (removeITemToRemove)
-        {
-            RemoveAudioItem(itemToRemove);
-
-            // Stop removing an item
-            itemToRemove = null;
-        }
-
-        
 
         // Renders the drop area
         DropAreaGui();
 
-        if (requireRepaint)
+        if (GUI.changed)
         {
+            EditorUtility.SetDirty(AudioManagerPrefab.gameObject);
+            
+            Debug.Log("Dirty bitches");
+
             Repaint();
         }
     }
@@ -188,8 +181,9 @@ public class AudioWindow : EditorWindow
             // Remove the item if ok is pressed
             if (GUILayout.Button("Ok"))
             {
-                // This will make sure we remove the audio item, after loop has finished
-                removeITemToRemove = true;
+                RemoveAudioItem(audioItem);
+
+                
             }
 
             // Reset color
@@ -200,7 +194,10 @@ public class AudioWindow : EditorWindow
         EditorGUILayout.EndHorizontal();
 
         // Volume slider
-        audioItem.Volume = EditorGUILayout.Slider("Volume", audioItem.Volume, 0, 1);
+        EditorGUILayout.BeginHorizontal();
+        audioItem.Volume = 0.01f * EditorGUILayout.Slider("Volume", audioItem.Volume * 100, 0, 100);
+        GUILayout.Label("%");
+        EditorGUILayout.EndHorizontal();
 
         // Looping toggle
         audioItem.Loop = EditorGUILayout.Toggle("Looping", audioItem.Loop);
@@ -284,6 +281,8 @@ public class AudioWindow : EditorWindow
         List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
         audioItems.Remove(item);
         audioManagerPrefab.AudioItems = audioItems.ToArray();
+
+        selectedAudioIndex = 0;
 
         ApplyChanges();
     }
@@ -378,6 +377,10 @@ public class AudioWindow : EditorWindow
                 }
 
                 ApplyChanges();
+
+                EditorUtility.SetDirty(AudioManagerPrefab.gameObject);
+            
+                Debug.Log("Dirty bitches");
 
                 Event.current.Use();
                 break;
