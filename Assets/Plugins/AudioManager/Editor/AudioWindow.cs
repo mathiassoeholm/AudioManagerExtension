@@ -14,6 +14,8 @@ public class AudioWindow : EditorWindow
 
     private static AudioWindow window;
 
+    private AudioManager audioManagerInScene;
+
     private AudioManager audioManagerPrefab;
 
     private AudioManager AudioManagerPrefab
@@ -42,6 +44,43 @@ public class AudioWindow : EditorWindow
         window.title = "Audio Manager";
 	}
 
+    private void Update()
+    {
+        // Check if there is an audio manager in the scene
+        if (audioManagerInScene == null)
+        {
+            // Check if amount of audio managers in the scene is corred
+            Object[] audioManagers = FindSceneObjectsOfType(typeof(AudioManager));
+
+            if (audioManagers.Length == 0)
+            {
+                // Instantiate an audiomanager in the scene
+                audioManagerInScene = (Instantiate(AudioManagerPrefab.gameObject) as GameObject).GetComponent<AudioManager>();
+            }
+            else if (audioManagers.Length >= 1)
+            {
+                for (int i = audioManagers.Length - 1; i >= 0; i--)
+                {
+                    if (i == 0)
+                    {
+                        // Assign to found audio manager
+                        audioManagerInScene = (audioManagers[i] as GameObject).GetComponent<AudioManager>();
+                    }
+                    else
+                    {
+                        // Remove potential extra audio managers
+                        DestroyImmediate(audioManagers[i] as GameObject);
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Clone audio items from prefab to scene instance
+            audioManagerInScene.AudioItems = audioManagerPrefab.AudioItems;
+        }
+    }
+
     private void OnGUI()
     {
         // This gets set to true if the gui needs repaint during this method
@@ -56,6 +95,8 @@ public class AudioWindow : EditorWindow
         // Begin a scrollview
         scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.ExpandWidth(true), GUILayout.ExpandWidth(true));
 
+        bool removeITemToRemove = false;
+
         // Runs through a copy of the audio item collection, this enables us to remove from the original collection
         foreach (AudioItem audioItem in AudioManagerPrefab.AudioItems)
         {
@@ -66,17 +107,17 @@ public class AudioWindow : EditorWindow
             EditorGUILayout.LabelField(Path.GetFileName(audioItem.FilePath), EditorStyles.boldLabel);
 
             // If the sound is playing, allow us to stop it
-            if (AudioManager.Instance.IsAudioItemPlaying(audioItem))
+            if (AudioManagerPrefab.IsAudioItemPlaying(audioItem))
             {
                 if (GUILayout.Button("Stop"))
                 {
-                    AudioManager.Instance.StopAudioItem(audioItem);
+                    AudioManagerPrefab.StopAudioItem(audioItem);
                     requireRepaint = true;
                 }
             }
             else if (GUILayout.Button("Play"))
             {
-                AudioManager.Instance.PlaySound(audioItem);
+                AudioManagerPrefab.PlaySound(audioItem);
 
                 requireRepaint = true;
             }
@@ -111,10 +152,8 @@ public class AudioWindow : EditorWindow
                 // Remove the item if ok is pressed
                 if (GUILayout.Button("Ok"))
                 {
-                    RemoveAudioItem(itemToRemove);
-
-                    // Stop removing an item
-                    itemToRemove = null;
+                    // This will make sure we remove the audio item, after loop has finished
+                    removeITemToRemove = true;
                 }
 
                 // Reset color
@@ -132,6 +171,14 @@ public class AudioWindow : EditorWindow
 
             // Play on awake toggle
             audioItem.PlayOnAwake = EditorGUILayout.Toggle("Play on Awake", audioItem.PlayOnAwake);
+        }
+
+        if (removeITemToRemove)
+        {
+            RemoveAudioItem(itemToRemove);
+
+            // Stop removing an item
+            itemToRemove = null;
         }
 
         // Apply all changes if we hit the apply button
@@ -201,7 +248,7 @@ public class AudioWindow : EditorWindow
     public void RemoveAudioItem(AudioItem item)
     {
         // Stop any sources with this sound from playing
-        AudioManager.Instance.StopAudioItem(item);
+        AudioManagerPrefab.StopAudioItem(item);
 
         // Remove an audio item from the array
         List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();

@@ -11,7 +11,7 @@ public class AudioItem
 
     public bool Loop;
 
-    public float Volume;
+    public float Volume = 1;
 
     private string filePath;
 

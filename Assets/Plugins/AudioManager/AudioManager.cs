@@ -12,79 +12,6 @@ public partial class AudioManager : MonoBehaviour
     // List keeping track of all audio sources in the scene, used to play sound effects
     private List<AudioSource> audioSources = new List<AudioSource>();
 
-    private static AudioManager instance;
-
-    public static AudioManager Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
-                Object[] objects;
-                objects = FindObjectsOfType(typeof(AudioManager));
-
-                if (objects.Length == 0)
-                {
-                    Debug.Log("No AudioManager was found in the scene, spawning one...");
-                    var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
-
-                    instance = (Instantiate(audioManager) as GameObject).GetComponent<AudioManager>();
-                }
-                else if (objects.Length > 1)
-                {
-                    Debug.Log("Several Audio Managers were found in scene! You can only have one.. Destroying others");
-
-                    // Destroy remaining audio managers
-                    for (int i = 1; i < objects.Length; i++)
-                    {
-                        GameObject gameObjectToDestroy = (objects[i] as AudioManager).gameObject;
-                        
-                        if (Application.isPlaying)
-                        {
-                            // Destroy in game
-                            Destroy(gameObjectToDestroy);
-                        }
-                        else
-                        {
-                            // Destroy in editor
-                            DestroyImmediate(gameObjectToDestroy);
-                        }
-                    }
-                }
-                else
-                {
-                    instance = (AudioManager)objects[0];
-                }
-            }
-
-            return instance;
-        }
-    }
-
-    public static void CreateNewInstance(GameObject prefab)
-    {
-        var objects = FindObjectsOfType(typeof(AudioManager));
-
-        // Destroy old audio managers
-        for (int i = 0; i < objects.Length; i++)
-        {
-            GameObject gameObjectToDestroy = (objects[i] as AudioManager).gameObject;
-            
-            if (Application.isPlaying)
-            {
-                // Destroy in game
-                Destroy(gameObjectToDestroy);
-            }
-            else
-            {
-                // Destroy in editor
-                DestroyImmediate(gameObjectToDestroy);
-            }
-        }
-
-        instance = (Instantiate(prefab) as GameObject).GetComponent<AudioManager>();
-    }
-
     void Awake()
     {
         Object[] audioSorcesInScene = FindSceneObjectsOfType(typeof (AudioSource));
@@ -120,18 +47,18 @@ public partial class AudioManager : MonoBehaviour
     private static void PlaySound (int id, float volume)
     {
         // Use the audio manager instance to play a sound
-        Instance.PlaySound(Instance.AudioItems[id], volume);
+       // Instance.PlaySound(Instance.AudioItems[id], volume);
     }
 
     private static void StopSound(int id)
     {
-        foreach (AudioSource audioSource in Instance.audioSources)
-        {
-            if (audioSource.clip == Instance.AudioItems[id].Clip)
-            {
-                audioSource.Stop();
-            }
-        }
+        //foreach (AudioSource audioSource in Instance.audioSources)
+        //{
+        //    if (audioSource.clip == Instance.AudioItems[id].Clip)
+        //    {
+        //        audioSource.Stop();
+        //    }
+        //}
     }
 
     public bool IsAudioItemPlaying(AudioItem item)
