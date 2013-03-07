@@ -20,8 +20,6 @@ public class AudioWindow : EditorWindow
 
     private int selectedAudioIndex;
 
-    private bool requireRepaint;
-
     private AudioManager AudioManagerPrefab
     {
         get
@@ -91,9 +89,6 @@ public class AudioWindow : EditorWindow
 
     private void OnGUI()
     {
-        // This gets set to true if the gui needs repaint during this method
-        requireRepaint = false;
-
         DrawSeperator("Global Settings");
 
         GUILayout.BeginHorizontal();
@@ -101,17 +96,13 @@ public class AudioWindow : EditorWindow
         GUILayout.Label("%");
         GUILayout.EndHorizontal();
 
-
         DrawSeperator("Audio Files");
-
 
         if (AudioManagerPrefab.AudioItems.Length > 0)
         {
             selectedAudioIndex = EditorGUILayout.Popup(selectedAudioIndex,
                                                      AudioManagerPrefab.AudioItems.Select(a => a.Name).ToArray());
  
-            Debug.Log("Selected audio index " + selectedAudioIndex);
-
             DrawAudioItemGui(AudioManagerPrefab.AudioItems[selectedAudioIndex]);
         }
 
@@ -141,14 +132,11 @@ public class AudioWindow : EditorWindow
             if (GUILayout.Button("Stop"))
             {
                 AudioManagerPrefab.StopAudioItem(audioItem);
-                requireRepaint = true;
             }
         }
         else if (GUILayout.Button("Play"))
         {
             AudioManagerPrefab.PlaySound(audioItem);
-
-            requireRepaint = true;
         }
 
         // Make sure this audio item is not currently being removed
@@ -159,8 +147,6 @@ public class AudioWindow : EditorWindow
 
             if (GUILayout.Button("Remove"))
             {
-                requireRepaint = true;
-
                 itemToRemove = audioItem;
             }
 
@@ -182,8 +168,6 @@ public class AudioWindow : EditorWindow
             if (GUILayout.Button("Ok"))
             {
                 RemoveAudioItem(audioItem);
-
-                
             }
 
             // Reset color
@@ -307,7 +291,8 @@ public class AudioWindow : EditorWindow
         // Generate AudioManager methods
         using (TextWriter writer = File.CreateText(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs"))
         {
-            writer.WriteLine(@"// THIS FILE IS AUTO GENERATED, DO NO MODIFY!");
+            writer.WriteLine(@"// THIS FILE IS AUTO GENERATED, DO NOT MODIFY!");
+            writer.WriteLine(@"#region Auto generated code");
             writer.WriteLine(@"public partial class AudioManager");
             writer.WriteLine(@"{");
 
@@ -316,13 +301,13 @@ public class AudioWindow : EditorWindow
                 // PLay sound method
                 writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].FilePath));
                 writer.WriteLine(@"    {");
-                writer.WriteLine(@"        PlaySound({0},{1}f);", i, AudioManagerPrefab.AudioItems[i].Volume);
+                writer.WriteLine(@"        PlaySound({0}, null);", i);
                 writer.WriteLine(@"    }");
 
                 // PLay sound method
                 writer.WriteLine(@"    public static void Play{0}(float volume)", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].FilePath));
                 writer.WriteLine(@"    {");
-                writer.WriteLine(@"        PlaySound({0},volume);", i);
+                writer.WriteLine(@"        PlaySound({0}, volume);", i);
                 writer.WriteLine(@"    }");
 
                 // Stop sound method
@@ -333,6 +318,7 @@ public class AudioWindow : EditorWindow
             }
 
             writer.WriteLine(@"}");
+            writer.WriteLine(@"#endregion");
         }
 
         // Reimport generated file

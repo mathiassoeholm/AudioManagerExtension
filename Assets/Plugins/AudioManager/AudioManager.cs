@@ -42,10 +42,10 @@ public partial class AudioManager : MonoBehaviour
         audioSources = new List<AudioSource>();
     }
 
-    private static void PlaySound (int id, float volume)
+    private static void PlaySound (int id, float? volume)
     {
         // Use the audio manager instance to play a sound
-        instance.PlaySound(instance.AudioItems[id], volume);
+        instance.PlaySound(instance.AudioItems[id], volume == null ? instance.AudioItems[id].Volume : (float)volume);
     }
 
     private static void StopSound(int id)
