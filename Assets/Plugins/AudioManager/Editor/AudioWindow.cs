@@ -6,18 +6,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-[InitializeOnLoad]
 public class AudioWindow : EditorWindow
 {
-    static List<AudioItem> audioItems = new List<AudioItem>();
-
-    private static string currentScene;
-
     private Vector2 scrollPos;
 
     private AudioItem itemToRemove;
 
     private static AudioWindow window;
+
+    private AudioManager audioManagerPrefab;
+
+    private AudioManager AudioManagerPrefab
+    {
+        get
+        {
+            if (audioManagerPrefab == null)
+            {
+                // Load asset
+                audioManagerPrefab =
+                    (Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof (GameObject))
+                     as GameObject).GetComponent<AudioManager>();
+            }
+
+            return audioManagerPrefab;
+        }
+    }
 
     [MenuItem("Window/Audio Manager")]
 	static void Init ()
@@ -27,41 +40,7 @@ public class AudioWindow : EditorWindow
 
         // Set window title
         window.title = "Audio Manager";
-
-        // Load audio items
-        LoadAllAudioItems();
-
-        // Apply sounds to the manager prefab
-        ApplySoundsToManagerPrefab();
-
-        Debug.Log("loaded");
 	}
-
-    static AudioWindow()
-    {
-        // Set current scene field
-        currentScene = EditorApplication.currentScene;
-
-        // Load audio items
-        LoadAllAudioItems();
-
-        Debug.Log("static constructor");
-    }
-
-    private void Update()
-    {
-        // Check if we changed scene
-        if (currentScene != EditorApplication.currentScene)
-        {
-            Debug.Log("Changing scene from " + currentScene);
-            
-            // Update which scene we are in
-            currentScene = EditorApplication.currentScene;
-
-            // Call scene change method
-            OnSceneChange();
-        }
-    }
 
     private void OnGUI()
     {
@@ -78,7 +57,7 @@ public class AudioWindow : EditorWindow
         scrollPos = GUILayout.BeginScrollView(scrollPos, GUILayout.ExpandWidth(true), GUILayout.ExpandWidth(true));
 
         // Runs through a copy of the audio item collection, this enables us to remove from the original collection
-        foreach (AudioItem audioItem in audioItems.ToArray())
+        foreach (AudioItem audioItem in AudioManagerPrefab.AudioItems)
         {
             // Begin a horizontal layout for path, play btn and remove btn
             EditorGUILayout.BeginHorizontal();
@@ -183,17 +162,6 @@ public class AudioWindow : EditorWindow
     }
 
     /// <summary>
-    /// We call this when changing the scene.
-    /// </summary>
-    private void OnSceneChange()
-    {
-        Debug.Log("Changed scene to " + currentScene);
-        
-        // Apply sounds to manager once again
-        ApplySoundsToManagerPrefab();
-    }
-
-    /// <summary>
     /// This method gets called for each audio file you drop in the drop area.
     /// </summary>
     /// <param name="filePath">
@@ -210,15 +178,17 @@ public class AudioWindow : EditorWindow
             && extension != ".ogg"
             && extension != ".wma"
             && extension != ".mp3"
-            ) || audioItems.Select(item => item.FilePath).Contains(filePath))
+            ) || audioManagerPrefab.AudioItems.Select(item => item.FilePath).Contains(filePath))
         {
             // Return if the file is already in the list
             return;
         }
 
-        // Add the file to the list
-        audioItems.Add(new AudioItem {FilePath = filePath, Volume = 1} );
-
+        // Add an audio item to the array
+        List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
+        audioItems.Add(new AudioItem { FilePath = filePath, Volume = 1 });
+        audioManagerPrefab.AudioItems = audioItems.ToArray();
+        
         Debug.Log("Added " + filePath);
     }
 
@@ -228,22 +198,15 @@ public class AudioWindow : EditorWindow
     /// <param name="item">
     /// The item to delete.
     /// </param>
-    public static void RemoveAudioItem(AudioItem item)
+    public void RemoveAudioItem(AudioItem item)
     {
         // Stop any sources with this sound from playing
         AudioManager.Instance.StopAudioItem(item);
 
-        // Delete the audio items saved data
-        item.DeleteSaveData();
-
-        // Remove the audio item from the original list
+        // Remove an audio item from the array
+        List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
         audioItems.Remove(item);
-
-        // Reload audio items
-        LoadAllAudioItems();
-
-        // Apply sounds to the manager
-        ApplySoundsToManagerPrefab();
+        audioManagerPrefab.AudioItems = audioItems.ToArray();
     }
 
     /// <summary>
@@ -254,35 +217,11 @@ public class AudioWindow : EditorWindow
         // Stop removing any item
         itemToRemove = null;
         
-        // Stop all audio sources from playing
-        AudioManager.Instance.StopAllSounds();
-        
-        // Save audio items
-        SaveAllAudioItems();
-
         // Generate partial AudioManager class
         GenerateCode();
-
-        // Apply modified properties to audio manager prefab
-        ApplySoundsToManagerPrefab();
         
         // Repaint
         Repaint();
-    }
-
-    /// <summary>
-    /// Applies sounds to the audio manager prefab, and instantiates a new one.
-    /// </summary>
-    static void ApplySoundsToManagerPrefab()
-    {
-        // Get the audio manager prefab
-        var audioManager = (GameObject)Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject));
-
-        // Apply the audio items to the prefab
-        audioManager.GetComponent<AudioManager>().AudioItems = audioItems.ToArray();
-
-        //Create a new instance of the prefab
-        AudioManager.CreateNewInstance(audioManager);
     }
 
     /// <summary>
@@ -297,22 +236,22 @@ public class AudioWindow : EditorWindow
             writer.WriteLine(@"public partial class AudioManager");
             writer.WriteLine(@"{");
 
-            for (int i = 0; i < audioItems.Count; i++)
+            for (int i = 0; i < AudioManagerPrefab.AudioItems.Length; i++)
             {
                 // PLay sound method
-                writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(audioItems[i].FilePath));
+                writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].FilePath));
                 writer.WriteLine(@"    {");
-                writer.WriteLine(@"        PlaySound({0},{1}f);", i, audioItems[i].Volume);
+                writer.WriteLine(@"        PlaySound({0},{1}f);", i, AudioManagerPrefab.AudioItems[i].Volume);
                 writer.WriteLine(@"    }");
 
                 // PLay sound method
-                writer.WriteLine(@"    public static void Play{0}(float volume)", Path.GetFileNameWithoutExtension(audioItems[i].FilePath));
+                writer.WriteLine(@"    public static void Play{0}(float volume)", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].FilePath));
                 writer.WriteLine(@"    {");
                 writer.WriteLine(@"        PlaySound({0},volume);", i);
                 writer.WriteLine(@"    }");
 
                 // Stop sound method
-                writer.WriteLine(@"    public static void Stop{0}()", Path.GetFileNameWithoutExtension(audioItems[i].FilePath));
+                writer.WriteLine(@"    public static void Stop{0}()", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].FilePath));
                 writer.WriteLine(@"    {");
                 writer.WriteLine(@"        StopSound({0});", i);
                 writer.WriteLine(@"    }");
@@ -323,42 +262,6 @@ public class AudioWindow : EditorWindow
 
         // Reimport generated file
         AssetDatabase.ImportAsset(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs", ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
-    }
-
-    /// <summary>
-    /// Loads all the audio items from their appropriate text files.
-    /// </summary>
-    private static void LoadAllAudioItems()
-    {
-        audioItems = new List<AudioItem>();
-
-        // If the directory doesn't exist nothing has been saved and we can return
-        if (!Directory.Exists(@"ProjectSettings/AudioItems"))
-        {
-            return;
-        }
-
-        foreach (string dataPath in Directory.GetFiles(@"ProjectSettings/AudioItems"))
-        {
-            // Load audio item from the path
-            var audioItem = new AudioItem();
-            audioItem.LoadItem(dataPath);
-
-            // Add te loaded item to the list
-            audioItems.Add(audioItem);
-        }
-    }
-
-    /// <summary>
-    /// Saves all audio items to text files.
-    /// </summary>
-    void SaveAllAudioItems()
-    {
-        // Save items
-        foreach (AudioItem audioItem in audioItems.ToArray())
-        {
-            audioItem.SaveItem();
-        }
     }
 
     /// <summary>
@@ -396,12 +299,6 @@ public class AudioWindow : EditorWindow
                     {
                         OnDropAudioFile(path);
                     }
-
-                    // Save state of audio items
-                    SaveAllAudioItems();
-
-                    // Apply changes
-                    ApplyChanges();
                 }
 
                 Event.current.Use();
