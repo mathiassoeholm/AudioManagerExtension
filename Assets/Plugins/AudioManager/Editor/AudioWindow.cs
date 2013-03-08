@@ -20,6 +20,8 @@ public class AudioWindow : EditorWindow
 
     private int selectedAudioIndex;
 
+    private bool isInEditor;
+
     private AudioManager AudioManagerPrefab
     {
         get
@@ -46,12 +48,31 @@ public class AudioWindow : EditorWindow
         window.title = "Audio Manager";
 	}
 
+    private void OnGameStart()
+    {
+        Repaint();
+    }
+
+    private void OnGameStop()
+    {
+        Repaint();
+    }
+
     private void Update()
     {
+        if (isInEditor && (EditorApplication.isPlaying || EditorApplication.isPaused))
+        {
+            OnGameStart();
+        }
+        else if (!isInEditor && !EditorApplication.isPaused && !EditorApplication.isPlaying)
+        {
+            OnGameStop();
+        }
+        
         // Check if there is an audio manager in the scene
         if (audioManagerInScene == null)
         {
-            // Check if amount of audio managers in the scene is corred
+            // Check if amount of audio managers in the scene is correct
             Object[] audioManagers = FindSceneObjectsOfType(typeof(AudioManager));
 
             if (audioManagers.Length == 0)
@@ -65,9 +86,6 @@ public class AudioWindow : EditorWindow
                 {
                     if (i == 0)
                     {
-
-                        Debug.Log((audioManagers[i]).ToString());
-
                         // Assign to found audio manager
                         audioManagerInScene = (audioManagers[i] as AudioManager);
                     }
@@ -83,12 +101,21 @@ public class AudioWindow : EditorWindow
         {
             ApplySettingsToAudioManagerInstance();
         }
+
+        isInEditor = !EditorApplication.isPaused && !EditorApplication.isPlaying;
     }
 
     private void OnGUI()
     {
         if (audioManagerInScene == null)
         {
+            return;
+        }
+
+        if (EditorApplication.isPlaying || EditorApplication.isPaused)
+        {
+            GUILayout.Label("Editing in play mode is not supported :-(");
+
             return;
         }
         
@@ -165,6 +192,9 @@ public class AudioWindow : EditorWindow
         }
         else if (GUILayout.Button("Play"))
         {
+            // Add any potential leaked audio sources
+            audioManagerInScene.AddLeakedAudioSources();
+            
             audioManagerInScene.PlaySound(audioItem);
         }
 

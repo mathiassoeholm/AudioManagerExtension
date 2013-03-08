@@ -12,16 +12,13 @@ public partial class AudioManager : MonoBehaviour
     public AudioManagerSettings Settings;
 
     // List keeping track of all audio sources in the scene, used to play sound effects
-    private List<AudioSource> audioSources = new List<AudioSource>();
+    private static List<AudioSource> audioSources = new List<AudioSource>();
 
     private static AudioManager instance;
 
     void Awake()
     {
         instance = this;
-
-        // Reset audio sources list
-        audioSources = new List<AudioSource>();
     }
 
 	void Start ()
@@ -50,7 +47,7 @@ public partial class AudioManager : MonoBehaviour
 
     private static void StopSound(int id)
     {
-        foreach (AudioSource audioSource in instance.audioSources)
+        foreach (AudioSource audioSource in audioSources)
         {
             if (audioSource.clip == instance.AudioItems[id].Clip)
             {
@@ -62,6 +59,17 @@ public partial class AudioManager : MonoBehaviour
     public bool IsAudioItemPlaying(AudioItem item)
     {
         return audioSources.Any(audioSource => audioSource.clip == item.Clip && audioSource.isPlaying);
+    }
+
+    public void AddLeakedAudioSources()
+    {
+        foreach (AudioSource audioSource in FindSceneObjectsOfType(typeof(AudioSource)).OfType<AudioSource>())
+        {
+            if (!audioSources.Contains(audioSource))
+            {
+                audioSources.Add(audioSource);
+            }
+        }
     }
 
     public void UpdateAudioSourcesWithNewSettings(AudioItem itemToUpdate)
@@ -96,23 +104,17 @@ public partial class AudioManager : MonoBehaviour
             if (audioSources[i].clip == item.Clip)
             {
                 audioSources[i].Stop();
-                //DestroyImmediate(audioSources[i].gameObject);
-                //audioSources.RemoveAt(i);
             }
         }
     }
 
     public void StopAllSounds()
     {
-        // Destroy all audio sources
+        // Stop all audio sources
         for (int i = audioSources.Count - 1; i >= 0; i--)
         {
             audioSources[i].Stop();
-            //DestroyImmediate(audioSources[i].gameObject);
         }
-        
-        // Reset the list
-        // audioSources = new List<AudioSource>();
     }
 
     public void PlaySound(AudioItem audioItem)
