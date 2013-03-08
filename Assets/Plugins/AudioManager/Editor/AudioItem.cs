@@ -14,14 +14,5 @@ public class AudioItem
     public float Volume = 1;
 
     public string Name;
-
-    public string FilePath;
-
-    public void LoadAudioClipFromPath()
-    {
-        Name = Path.GetFileName(FilePath);
-        
-        Clip = (AudioClip)Resources.LoadAssetAtPath(FilePath, typeof(AudioClip));
-    }
 }
 

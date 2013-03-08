@@ -98,16 +98,29 @@ public class AudioWindow : EditorWindow
 
         DrawSeperator("Audio Files");
 
+        GUILayout.BeginHorizontal();
+
         if (AudioManagerPrefab.AudioItems.Length > 0)
         {
             selectedAudioIndex = EditorGUILayout.Popup(selectedAudioIndex,
-                                                     AudioManagerPrefab.AudioItems.Select(a => a.Name).ToArray());
- 
-            DrawAudioItemGui(AudioManagerPrefab.AudioItems[selectedAudioIndex]);
+                                                       AudioManagerPrefab.AudioItems.Select(a => a.Name).ToArray());
+        }
+        else
+        {
+            EditorGUILayout.Popup(0, new string[]{"No audio files added"});
         }
 
-        // Renders the drop area
-        DropAreaGui();
+        if (GUILayout.Button("Add Selected"))
+        {
+            AddSelectedItems();
+        }
+
+        GUILayout.EndHorizontal();
+
+        if (AudioManagerPrefab.AudioItems.Length > 0)
+        {
+            DrawAudioItemGui(AudioManagerPrefab.AudioItems[selectedAudioIndex]);
+        }
 
         if (GUI.changed)
         {
@@ -223,31 +236,24 @@ public class AudioWindow : EditorWindow
     /// <param name="filePath">
     /// The path of the file dropped.
     /// </param>
-    void OnDropAudioFile(string filePath)
+    private bool AddAudioFile(AudioClip audioClip)
     {
-        // Get the extension of the dropped file
-        string extension = Path.GetExtension(filePath);
-
-        // Check for a valid file extension, and make sure the file isn't already added
-        if(
-            (  extension != ".wav"
-            && extension != ".ogg"
-            && extension != ".wma"
-            && extension != ".mp3"
-            ) || audioManagerPrefab.AudioItems.Select(item => item.FilePath).Contains(filePath))
+        // Make sure the file isn't already added
+        if (audioManagerPrefab.AudioItems.Select(item => item.Clip).Contains(audioClip))
         {
             // Return if the file is already in the list
-            return;
+            return false;
         }
 
         // Add an audio item to the array
         List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
-        AudioItem newAudiItem = new AudioItem {FilePath = filePath, Volume = 1};
-        newAudiItem.LoadAudioClipFromPath();
+        AudioItem newAudiItem = new AudioItem {Clip = audioClip, Volume = 1, Name = audioClip.name};
         audioItems.Add(newAudiItem);
         audioManagerPrefab.AudioItems = audioItems.ToArray();
-        
-        Debug.Log("Added " + filePath);
+
+        Debug.Log("Added " + audioClip.name);
+
+        return true;
     }
 
     /// <summary>
@@ -299,19 +305,19 @@ public class AudioWindow : EditorWindow
             for (int i = 0; i < AudioManagerPrefab.AudioItems.Length; i++)
             {
                 // PLay sound method
-                writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].FilePath));
+                writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].Name));
                 writer.WriteLine(@"    {");
                 writer.WriteLine(@"        PlaySound({0}, null);", i);
                 writer.WriteLine(@"    }");
 
                 // PLay sound method
-                writer.WriteLine(@"    public static void Play{0}(float volume)", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].FilePath));
+                writer.WriteLine(@"    public static void Play{0}(float volume)", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].Name));
                 writer.WriteLine(@"    {");
                 writer.WriteLine(@"        PlaySound({0}, volume);", i);
                 writer.WriteLine(@"    }");
 
                 // Stop sound method
-                writer.WriteLine(@"    public static void Stop{0}()", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].FilePath));
+                writer.WriteLine(@"    public static void Stop{0}()", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].Name));
                 writer.WriteLine(@"    {");
                 writer.WriteLine(@"        StopSound({0});", i);
                 writer.WriteLine(@"    }");
@@ -325,51 +331,21 @@ public class AudioWindow : EditorWindow
         AssetDatabase.ImportAsset(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs", ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
     }
 
-    /// <summary>
-    /// Renders and handles events for the drop area gui.
-    /// </summary>
-    private void DropAreaGui()
+    private void AddSelectedItems()
     {
-        Event evt = Event.current;
-
-        // Draw drop area box
-        Rect dropArea = GUILayoutUtility.GetRect(0, 50, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-        GUI.Box(dropArea, "Drop sounds here");
-
-        switch (evt.type)
+        bool didAddAudio = false;
+        
+        foreach (Object obj in Selection.objects)
         {
-            case EventType.DragUpdated:
-            case EventType.DragPerform:
-                // Check if the mouse position is within the droparea when drag is performed
-                if (!dropArea.Contains(evt.mousePosition))
-                {
-                    break;
-                }
+            if (AssetDatabase.Contains(obj) && obj is AudioClip)
+            {
+                didAddAudio = AddAudioFile(obj as AudioClip) || didAddAudio;
+            }
+        }
 
-                // Enable drag and drop by setting the visual mode to copy
-                DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
-
-                // Drag perform is sent when mouse button is lifted
-                if (evt.type == EventType.DragPerform)
-                {
-                    // Register that the drag event has been handled
-                    DragAndDrop.AcceptDrag();
-
-                    // Call OnDropAudioFile for each file that was dropped in alphabetical order
-                    foreach (string path in DragAndDrop.paths.ToList().OrderBy(s => s))
-                    {
-                        OnDropAudioFile(path);
-                    }
-                }
-
-                ApplyChanges();
-
-                EditorUtility.SetDirty(AudioManagerPrefab.gameObject);
-            
-                Debug.Log("Dirty bitches");
-
-                Event.current.Use();
-                break;
+        if (didAddAudio)
+        {
+            ApplyChanges();
         }
     }
 }
