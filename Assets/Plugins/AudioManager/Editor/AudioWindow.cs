@@ -95,7 +95,7 @@ public class AudioWindow : EditorWindow
         DrawSeperator("Global Settings");
 
         GUILayout.BeginHorizontal();
-        AudioManagerPrefab.Settings.MasterVolume = 0.01f * EditorGUILayout.Slider("Volume", AudioManagerPrefab.Settings.MasterVolume * 100, 0, 100);
+        AudioManagerPrefab.Settings.MasterVolume = 0.01f * EditorGUILayout.Slider("Volume", (int)(AudioManagerPrefab.Settings.MasterVolume * 100), 0, 100);
         GUILayout.Label("%");
         GUILayout.EndHorizontal();
 
@@ -208,7 +208,7 @@ public class AudioWindow : EditorWindow
 
         // Volume slider
         EditorGUILayout.BeginHorizontal();
-        audioItem.Volume = 0.01f * EditorGUILayout.Slider("Volume", audioItem.Volume * 100, 0, 100);
+        audioItem.Volume = 0.01f * EditorGUILayout.Slider("Volume", (int)(audioItem.Volume * 100), 0, 100);
         GUILayout.Label("%");
         EditorGUILayout.EndHorizontal();
 

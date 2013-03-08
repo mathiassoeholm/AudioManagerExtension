@@ -68,12 +68,9 @@ public partial class AudioManager : MonoBehaviour
     {
         foreach (AudioSource audioSource in audioSources)
         {
-            Debug.Log(audioSource.clip.name);
-
             if (audioSource.clip == itemToUpdate.Clip)
             {
                 ApplySettingsToAudioSource(audioSource, itemToUpdate);
-                Debug.Log("Updated yo");
             }
         }
     }
@@ -86,6 +83,8 @@ public partial class AudioManager : MonoBehaviour
         audioSource.pitch = audioSettings.Pitch;
 
         audioSource.loop = audioSettings.Loop;
+
+        audioSource.playOnAwake = audioSettings.PlayOnAwake;
 
     }
 
