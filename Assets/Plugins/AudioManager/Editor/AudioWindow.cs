@@ -304,20 +304,37 @@ public class AudioWindow : EditorWindow
 
             for (int i = 0; i < AudioManagerPrefab.AudioItems.Length; i++)
             {
+                string methodSuffix = AudioManagerPrefab.AudioItems[i].Name;
+
+                string methodSuffixTrimmed = string.Empty;
+
+                // Make sure we are not using any illegal characters, if so replace them with an _
+                foreach (char c in methodSuffix)
+                {
+                    if ((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122))
+                    {
+                        methodSuffixTrimmed += c;
+                    }
+                    else
+                    {
+                        methodSuffixTrimmed += '_';
+                    }
+                }
+                
                 // PLay sound method
-                writer.WriteLine(@"    public static void Play{0}()", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].Name));
+                writer.WriteLine(@"    public static void Play{0}()", methodSuffixTrimmed);
                 writer.WriteLine(@"    {");
                 writer.WriteLine(@"        PlaySound({0}, null);", i);
                 writer.WriteLine(@"    }");
 
                 // PLay sound method
-                writer.WriteLine(@"    public static void Play{0}(float volume)", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].Name));
+                writer.WriteLine(@"    public static void Play{0}(float volume)", methodSuffixTrimmed);
                 writer.WriteLine(@"    {");
                 writer.WriteLine(@"        PlaySound({0}, volume);", i);
                 writer.WriteLine(@"    }");
 
                 // Stop sound method
-                writer.WriteLine(@"    public static void Stop{0}()", Path.GetFileNameWithoutExtension(AudioManagerPrefab.AudioItems[i].Name));
+                writer.WriteLine(@"    public static void Stop{0}()", methodSuffixTrimmed);
                 writer.WriteLine(@"    {");
                 writer.WriteLine(@"        StopSound({0});", i);
                 writer.WriteLine(@"    }");
