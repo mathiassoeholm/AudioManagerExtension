@@ -64,6 +64,31 @@ public partial class AudioManager : MonoBehaviour
         return audioSources.Any(audioSource => audioSource.clip == item.Clip && audioSource.isPlaying);
     }
 
+    public void UpdateAudioSourcesWithNewSettings(AudioItem itemToUpdate)
+    {
+        foreach (AudioSource audioSource in audioSources)
+        {
+            Debug.Log(audioSource.clip.name);
+
+            if (audioSource.clip == itemToUpdate.Clip)
+            {
+                ApplySettingsToAudioSource(audioSource, itemToUpdate);
+                Debug.Log("Updated yo");
+            }
+        }
+    }
+
+    private void ApplySettingsToAudioSource(AudioSource audioSource, AudioItem audioSettings, float? volume = null)
+    {
+        // Set volume
+        audioSource.volume = (volume == null ? audioSettings.Volume : (float)volume) * Settings.MasterVolume;
+
+        audioSource.pitch = audioSettings.Pitch;
+
+        audioSource.loop = audioSettings.Loop;
+
+    }
+
     public void StopAudioItem(AudioItem item)
     {
         // Destroy any audio sources with this sound
@@ -71,8 +96,9 @@ public partial class AudioManager : MonoBehaviour
         {
             if (audioSources[i].clip == item.Clip)
             {
-                DestroyImmediate(audioSources[i].gameObject);
-                audioSources.RemoveAt(i);
+                audioSources[i].Stop();
+                //DestroyImmediate(audioSources[i].gameObject);
+                //audioSources.RemoveAt(i);
             }
         }
     }
@@ -82,11 +108,12 @@ public partial class AudioManager : MonoBehaviour
         // Destroy all audio sources
         for (int i = audioSources.Count - 1; i >= 0; i--)
         {
-            DestroyImmediate(audioSources[i].gameObject);
+            audioSources[i].Stop();
+            //DestroyImmediate(audioSources[i].gameObject);
         }
         
         // Reset the list
-        audioSources = new List<AudioSource>();
+        // audioSources = new List<AudioSource>();
     }
 
     public void PlaySound(AudioItem audioItem)
@@ -124,13 +151,11 @@ public partial class AudioManager : MonoBehaviour
             audioSources.Add(audioSource);
         }
 
-        audioSource.loop = audioItem.Loop;
-
         // Assign the clip to the selected audio source
         audioSource.clip = audioItem.Clip;
 
-        // Set volume
-        audioSource.volume = volume * Settings.MasterVolume;
+        // Apply settings to audio source
+        ApplySettingsToAudioSource(audioSource, audioItem, volume);
 
         // Play the clip with the selected audio source
         audioSource.Play();

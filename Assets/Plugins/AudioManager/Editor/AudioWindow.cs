@@ -81,14 +81,17 @@ public class AudioWindow : EditorWindow
         }
         else
         {
-            // Clone audio items and settings from prefab to scene instance
-            audioManagerInScene.AudioItems = audioManagerPrefab.AudioItems;
-            audioManagerInScene.Settings = audioManagerPrefab.Settings;
+            ApplySettingsToAudioManagerInstance();
         }
     }
 
     private void OnGUI()
     {
+        if (audioManagerInScene == null)
+        {
+            return;
+        }
+        
         DrawSeperator("Global Settings");
 
         GUILayout.BeginHorizontal();
@@ -125,31 +128,44 @@ public class AudioWindow : EditorWindow
         if (GUI.changed)
         {
             EditorUtility.SetDirty(AudioManagerPrefab.gameObject);
-            
-            Debug.Log("Dirty bitches");
 
             Repaint();
         }
     }
 
+    private void ApplySettingsToAudioManagerInstance()
+    {
+        // Clone audio items and settings from prefab to scene instance
+        audioManagerInScene.AudioItems = audioManagerPrefab.AudioItems;
+        audioManagerInScene.Settings = audioManagerPrefab.Settings;
+    }
+
     private void DrawAudioItemGui(AudioItem audioItem)
     {
+        GUI.changed = false;
+
+        bool isPlaying = false;
+        
         // Cache the old color
         Color oldColor = GUI.color;
 
         EditorGUILayout.BeginHorizontal();
 
         // If the sound is playing, allow us to stop it
-        if (AudioManagerPrefab.IsAudioItemPlaying(audioItem))
+        if (audioManagerInScene.IsAudioItemPlaying(audioItem))
         {
+            isPlaying = true;
+            
             if (GUILayout.Button("Stop"))
             {
-                AudioManagerPrefab.StopAudioItem(audioItem);
+                audioManagerInScene.StopAudioItem(audioItem);
+
+                isPlaying = false;
             }
         }
         else if (GUILayout.Button("Play"))
         {
-            AudioManagerPrefab.PlaySound(audioItem);
+            audioManagerInScene.PlaySound(audioItem);
         }
 
         // Make sure this audio item is not currently being removed
@@ -196,11 +212,19 @@ public class AudioWindow : EditorWindow
         GUILayout.Label("%");
         EditorGUILayout.EndHorizontal();
 
+        // Pitch slider
+        audioItem.Pitch = EditorGUILayout.Slider("Pitch", audioItem.Pitch, 0, 3);
+
         // Looping toggle
         audioItem.Loop = EditorGUILayout.Toggle("Looping", audioItem.Loop);
 
         // Play on awake toggle
         audioItem.PlayOnAwake = EditorGUILayout.Toggle("Play on Awake", audioItem.PlayOnAwake);
+
+        if (isPlaying && GUI.changed)
+        {
+            audioManagerInScene.UpdateAudioSourcesWithNewSettings(audioItem);
+        }
     }
 
     private void DrawSeperator(string text)

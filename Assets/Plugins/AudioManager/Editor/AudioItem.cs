@@ -13,6 +13,8 @@ public class AudioItem
 
     public float Volume = 1;
 
+    public float Pitch = 1;
+
     public string Name;
 }
 
