@@ -245,15 +245,71 @@ public class AudioWindow : EditorWindow
         // Pitch slider
         audioItem.Pitch = EditorGUILayout.Slider("Pitch", audioItem.Pitch, 0, 3);
 
+        // Pan 2D slider
+        audioItem.Pan2D = EditorGUILayout.Slider("Pan 2D", audioItem.Pan2D, -1, 1);
+
         // Looping toggle
         audioItem.Loop = EditorGUILayout.Toggle("Looping", audioItem.Loop);
 
         // Play on awake toggle
         audioItem.PlayOnAwake = EditorGUILayout.Toggle("Play on Awake", audioItem.PlayOnAwake);
 
-        if (isPlaying && GUI.changed)
+        EditorGUILayout.BeginHorizontal();
+
+        // Sync settings
+        audioItem.SyncWithOtherAudioClip = EditorGUILayout.Toggle("Sync settings from", audioItem.SyncWithOtherAudioClip);
+
+        if (audioItem.SyncWithOtherAudioClip)
         {
-            audioManagerInScene.UpdateAudioSourcesWithNewSettings(audioItem);
+            // Check if sync source is still available, otherwise don't sync
+            if (audioItem.NameOfSyncSource != string.Empty &&
+                !AudioManagerPrefab.AudioItems.Select(a => a.Name).Contains(audioItem.NameOfSyncSource))
+            {
+                audioItem.NameOfSyncSource = string.Empty;
+
+                audioItem.SyncWithOtherAudioClip = false;
+            }
+            else
+            {
+                int selectionIndex = 0;
+                
+                for (int i = 0; i < AudioManagerPrefab.AudioItems.Length; i++)
+                {
+                    // Find index for sync source
+                    if (AudioManagerPrefab.AudioItems[i].Name == audioItem.NameOfSyncSource)
+                    {
+                        selectionIndex = i;
+                        break;
+                    }
+                }
+                
+                // Make sync popup
+                audioItem.NameOfSyncSource = AudioManagerPrefab.AudioItems[EditorGUILayout.Popup(selectionIndex, AudioManagerPrefab.AudioItems.Select(a => a.Name).ToArray())].Name;
+            }
+        }
+
+        EditorGUILayout.EndHorizontal();
+
+        if (GUI.changed)
+        {
+            // Sync other audio items, that might be synced to this one
+            foreach (AudioItem otherAudioItem in AudioManagerPrefab.AudioItems)
+            {
+                if (otherAudioItem.SyncWithOtherAudioClip && otherAudioItem.NameOfSyncSource == audioItem.Name)
+                {
+                    // Sync misc settings
+                    otherAudioItem.Loop = audioItem.Loop;
+                    otherAudioItem.Pan2D = audioItem.Pan2D;
+                    otherAudioItem.Pitch = audioItem.Pitch;
+                    otherAudioItem.Volume = audioItem.Volume;
+                    otherAudioItem.PlayOnAwake = audioItem.PlayOnAwake;
+                }
+            }
+
+            if (isPlaying)
+            {
+                audioManagerInScene.UpdateAudioSourcesWithNewSettings(audioItem);
+            }
         }
     }
 

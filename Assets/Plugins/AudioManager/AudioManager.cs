@@ -85,7 +85,6 @@ public partial class AudioManager : MonoBehaviour
 
     private void ApplySettingsToAudioSource(AudioSource audioSource, AudioItem audioSettings, float? volume = null)
     {
-        // Set volume
         audioSource.volume = (volume == null ? audioSettings.Volume : (float)volume) * Settings.MasterVolume;
 
         audioSource.pitch = audioSettings.Pitch;
@@ -93,6 +92,8 @@ public partial class AudioManager : MonoBehaviour
         audioSource.loop = audioSettings.Loop;
 
         audioSource.playOnAwake = audioSettings.PlayOnAwake;
+
+        audioSource.pan = audioSettings.Pan2D;
 
     }
 
