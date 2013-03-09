@@ -23,6 +23,8 @@ public partial class AudioManager : MonoBehaviour
 
 	void Start ()
     {
+        Debug.Log("AudioManager .Start()");
+        
         // Play start on awake sounds
 	    for (int i = 0; i < AudioItems.Length; i++)
 	    {
@@ -59,13 +61,7 @@ public partial class AudioManager : MonoBehaviour
     public bool IsAudioItemPlaying(AudioItem item)
     {
         // Remove destroyed audio sources from the list
-        for (int i = audioSources.Count - 1; i >= 0; i--)
-        {
-            if (audioSources[i] == null)
-            {
-                audioSources.RemoveAt(i);
-            }
-        }
+        RemoveAllMissingSources();
         
         return audioSources.Any(audioSource => audioSource.clip == item.Clip && audioSource.isPlaying);
     }
@@ -120,6 +116,18 @@ public partial class AudioManager : MonoBehaviour
 
     }
 
+    private void RemoveAllMissingSources()
+    {
+        // Remove destroyed audio sources from the list
+        for (int i = audioSources.Count - 1; i >= 0; i--)
+        {
+            if (audioSources[i] == null)
+            {
+                audioSources.RemoveAt(i);
+            }
+        }
+    }
+
     public void StopAudioItem(AudioItem item)
     {
         // Destroy any audio sources with this sound
@@ -148,6 +156,8 @@ public partial class AudioManager : MonoBehaviour
 
     public void PlaySound(AudioItem audioItem, float volume)
     {
+        RemoveAllMissingSources();
+        
         // We need an audio source to play a sound
         var audioSource = new AudioSource();
         bool didFindAudioSource = false;
@@ -170,7 +180,7 @@ public partial class AudioManager : MonoBehaviour
             // Create audio source
             audioSource = new GameObject("AudioSource").AddComponent<AudioSource>();
 
-            //audioSource.gameObject.hideFlags = HideFlags.HideAndDontSave;
+           // audioSource.gameObject.hideFlags = HideFlags.DontSave;
 
             // Add new audio source to our list
             audioSources.Add(audioSource);

@@ -79,6 +79,8 @@ public class AudioWindow : EditorWindow
             {
                 // Instantiate an audiomanager in the scene
                 audioManagerInScene = (Instantiate(AudioManagerPrefab.gameObject) as GameObject).GetComponent<AudioManager>();
+
+                //audioManagerInScene.gameObject.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
             }
             else if (audioManagers.Length >= 1)
             {
