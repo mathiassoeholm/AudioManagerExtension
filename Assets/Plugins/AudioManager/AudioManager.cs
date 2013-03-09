@@ -58,6 +58,15 @@ public partial class AudioManager : MonoBehaviour
 
     public bool IsAudioItemPlaying(AudioItem item)
     {
+        // Remove destroyed audio sources from the list
+        for (int i = audioSources.Count - 1; i >= 0; i--)
+        {
+            if (audioSources[i] == null)
+            {
+                audioSources.RemoveAt(i);
+            }
+        }
+        
         return audioSources.Any(audioSource => audioSource.clip == item.Clip && audioSource.isPlaying);
     }
 
