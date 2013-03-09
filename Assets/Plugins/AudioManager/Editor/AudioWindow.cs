@@ -26,6 +26,8 @@ public class AudioWindow : EditorWindow
     {
         get
         {
+#if UNITY_WEBPLAYER
+#else
             if (audioManagerPrefab == null)
             {
                 // Load asset
@@ -33,10 +35,12 @@ public class AudioWindow : EditorWindow
                     (Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof (GameObject))
                      as GameObject).GetComponent<AudioManager>();
             }
+#endif
 
             return audioManagerPrefab;
         }
     }
+
 
     [MenuItem("Window/Audio Manager")]
 	static void Init ()
@@ -60,6 +64,11 @@ public class AudioWindow : EditorWindow
 
     private void Update()
     {
+        #if UNITY_WEBPLAYER
+        return;
+        #endif
+
+
         if (isInEditor && (EditorApplication.isPlaying || EditorApplication.isPaused))
         {
             OnGameStart();
@@ -109,6 +118,12 @@ public class AudioWindow : EditorWindow
 
     private void OnGUI()
     {
+#if UNITY_WEBPLAYER
+        EditorGUILayout.LabelField("Webplayer is currently not supperted, change platform in build settings");
+        
+        return;
+#endif
+
         if (audioManagerInScene == null)
         {
             return;
@@ -413,6 +428,9 @@ public class AudioWindow : EditorWindow
     /// </summary>
     private void GenerateCode()
     {
+
+#if UNITY_WEBPLAYER
+#else
         // Generate AudioManager methods
         using (TextWriter writer = File.CreateText(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs"))
         {
@@ -462,6 +480,8 @@ public class AudioWindow : EditorWindow
             writer.WriteLine(@"}");
             writer.WriteLine(@"#endregion");
         }
+
+#endif
 
         // Reimport generated file
         AssetDatabase.ImportAsset(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs", ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
