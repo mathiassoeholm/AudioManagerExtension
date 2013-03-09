@@ -153,9 +153,11 @@ public class AudioWindow : EditorWindow
         }
 
         if (GUI.changed)
-        {
+        { 
             EditorUtility.SetDirty(AudioManagerPrefab.gameObject);
 
+            
+            
             Repaint();
         }
     }
@@ -235,6 +237,9 @@ public class AudioWindow : EditorWindow
 
         // End the top horizontal layout for this item
         EditorGUILayout.EndHorizontal();
+
+        // Clip object field
+        audioItem.Clip = EditorGUILayout.ObjectField("Clip", audioItem.Clip, typeof(AudioClip), false) as AudioClip;
 
         // Volume slider
         EditorGUILayout.BeginHorizontal();

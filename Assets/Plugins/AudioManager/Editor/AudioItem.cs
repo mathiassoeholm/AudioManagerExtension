@@ -3,7 +3,7 @@ using System.IO;
 using UnityEngine;
 
 [Serializable]
-public class AudioItem
+public class AudioItem : IEquatable<AudioItem>
 {
     public AudioClip Clip;
 
@@ -22,5 +22,17 @@ public class AudioItem
     public float Pan2D;
 
     public string Name;
+
+    public bool Equals(AudioItem other)
+    {
+        return other.Clip == Clip &&
+        other.NameOfSyncSource == NameOfSyncSource &&
+        other.PlayOnAwake == PlayOnAwake &&
+        other.Loop == Loop &&
+        Mathf.Approximately(other.Volume, Volume) &&
+        Mathf.Approximately(other.Pitch, Pitch) &&
+        Mathf.Approximately(other.Pan2D, Pan2D) &&
+        other.Name == Name;
+    }
 }
 
