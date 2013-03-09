@@ -276,6 +276,8 @@ public class AudioWindow : EditorWindow
         // Play on awake toggle
         audioItem.PlayOnAwake = EditorGUILayout.Toggle("Play on Awake", audioItem.PlayOnAwake);
 
+        audioItem.DontDestroyOnLoad = EditorGUILayout.Toggle("Don't destroy on load", audioItem.DontDestroyOnLoad);
+
         EditorGUILayout.BeginHorizontal();
 
         // Sync settings

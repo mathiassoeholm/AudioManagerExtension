@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using System.Collections;
-using Object = UnityEngine.Object;
 
 public partial class AudioManager : MonoBehaviour
 {
@@ -113,7 +111,6 @@ public partial class AudioManager : MonoBehaviour
         audioSource.playOnAwake = audioSettings.PlayOnAwake;
 
         audioSource.pan = audioSettings.Pan2D;
-
     }
 
     private void RemoveAllMissingSources()
@@ -178,7 +175,7 @@ public partial class AudioManager : MonoBehaviour
         if (!didFindAudioSource)
         {
             // Create audio source
-            audioSource = new GameObject("AudioSource").AddComponent<AudioSource>();
+            audioSource = new GameObject("AudioSource").AddComponent<AudioSourceComp>().gameObject.AddComponent<AudioSource>();
 
            // audioSource.gameObject.hideFlags = HideFlags.DontSave;
 
@@ -191,6 +188,8 @@ public partial class AudioManager : MonoBehaviour
 
         // Apply settings to audio source
         ApplySettingsToAudioSource(audioSource, audioItem, volume);
+
+        audioSource.GetComponent<AudioSourceComp>().DoDestroyOnLoad = audioItem.DontDestroyOnLoad;
 
         // Play the clip with the selected audio source
         audioSource.Play();
