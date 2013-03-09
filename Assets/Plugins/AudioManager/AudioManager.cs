@@ -72,6 +72,20 @@ public partial class AudioManager : MonoBehaviour
         }
     }
 
+    public void RemoveAllAudioSourcesWithClip(AudioClip clip)
+    {
+        AddLeakedAudioSources();
+
+        for (int i = audioSources.Count - 1; i >= 0; i--)
+        {
+            if (audioSources[i].clip == clip)
+            {
+                DestroyImmediate(audioSources[i].gameObject);
+                audioSources.RemoveAt(i);
+            }
+        }
+    }
+
     public void UpdateAudioSourcesWithNewSettings(AudioItem itemToUpdate)
     {
         foreach (AudioSource audioSource in audioSources)

@@ -380,7 +380,9 @@ public class AudioWindow : EditorWindow
     public void RemoveAudioItem(AudioItem item)
     {
         // Stop any sources with this sound from playing
-        AudioManagerPrefab.StopAudioItem(item);
+        audioManagerInScene.StopAudioItem(item);
+
+        audioManagerInScene.RemoveAllAudioSourcesWithClip(item.Clip);
 
         // Remove an audio item from the array
         List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
