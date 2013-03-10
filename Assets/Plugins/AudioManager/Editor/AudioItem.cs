@@ -5,7 +5,15 @@ using UnityEngine;
 [Serializable]
 public class AudioItem
 {
+    public enum SoundType
+    {
+        SoundEffect,
+        Music
+    }
+    
     public AudioClip Clip;
+
+    public SoundType Type;
 
     public string NameOfSyncSource;
 
@@ -16,6 +24,10 @@ public class AudioItem
     public bool Loop;
 
     public bool DontDestroyOnLoad;
+
+    public float RandomPitch;
+
+    public float RandomVolume;
 
     public float Volume = 1;
 

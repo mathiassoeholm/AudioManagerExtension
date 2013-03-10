@@ -13,12 +13,6 @@ public class AudioSourceComp : MonoBehaviour
             if (!value)
             {
                 DontDestroyOnLoad(gameObject);
-
-                Debug.Log("Nope");
-            }
-            else
-            {
-                Debug.Log("Yeah");
             }
 
             doDestroyOnLoad = value;

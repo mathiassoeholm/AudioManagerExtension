@@ -197,6 +197,9 @@ public class AudioWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal();
 
+
+        audioItem.Type = (AudioItem.SoundType)System.Convert.ToInt32(EditorGUILayout.EnumPopup(audioItem.Type));
+
         // If the sound is playing, allow us to stop it
         if (audioManagerInScene.IsAudioItemPlaying(audioItem))
         {
@@ -264,6 +267,18 @@ public class AudioWindow : EditorWindow
         GUILayout.Label("%");
         EditorGUILayout.EndHorizontal();
 
+        // Random Volume slider
+        EditorGUILayout.BeginHorizontal();
+        audioItem.RandomVolume = 0.01f * EditorGUILayout.Slider("Random Volume", (int)(audioItem.RandomVolume * 100), 0, 100);
+        GUILayout.Label("%±");
+        EditorGUILayout.EndHorizontal();
+
+        // Random Pitch slider
+        EditorGUILayout.BeginHorizontal();
+        audioItem.RandomPitch = EditorGUILayout.Slider("Random Pitch", audioItem.RandomPitch, 0, 1);
+        GUILayout.Label("±");
+        EditorGUILayout.EndHorizontal();
+
         // Pitch slider
         audioItem.Pitch = EditorGUILayout.Slider("Pitch", audioItem.Pitch, 0, 3);
 
@@ -276,6 +291,7 @@ public class AudioWindow : EditorWindow
         // Play on awake toggle
         audioItem.PlayOnAwake = EditorGUILayout.Toggle("Play on Awake", audioItem.PlayOnAwake);
 
+        // Don't destroy on laod toggle
         audioItem.DontDestroyOnLoad = EditorGUILayout.Toggle("Don't destroy on load", audioItem.DontDestroyOnLoad);
 
         EditorGUILayout.BeginHorizontal();
@@ -381,7 +397,15 @@ public class AudioWindow : EditorWindow
 
         // Add an audio item to the array
         List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
-        AudioItem newAudiItem = new AudioItem {Clip = audioClip, Volume = 1, Name = audioClip.name};
+
+        AudioItem newAudiItem = new AudioItem
+            {
+                Clip = audioClip,
+                Volume = 1,
+                Name = audioClip.name,
+                Type = audioClip.length > 8 ? AudioItem.SoundType.Music : AudioItem.SoundType.SoundEffect
+            };
+
         audioItems.Add(newAudiItem);
         audioManagerPrefab.AudioItems = audioItems.ToArray();
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public partial class AudioManager : MonoBehaviour
 {
@@ -102,9 +103,25 @@ public partial class AudioManager : MonoBehaviour
 
     private void ApplySettingsToAudioSource(AudioSource audioSource, AudioItem audioSettings, float? volume = null)
     {
-        audioSource.volume = (volume == null ? audioSettings.Volume : (float)volume) * Settings.MasterVolume;
+        if (volume == null)
+        {
+            audioSource.volume = audioSettings.Volume +
+                                 Random.Range(-audioSettings.RandomVolume, audioSettings.RandomVolume);
 
-        audioSource.pitch = audioSettings.Pitch;
+            Debug.Log("Random");
+        }
+        else
+        {
+            audioSource.volume = (float)volume;
+
+            Debug.Log("pfff");
+        }
+        
+        audioSource.volume *= Settings.MasterVolume;
+
+        Debug.Log("pfff");
+
+        audioSource.pitch = audioSettings.Pitch + Random.Range(-audioSettings.RandomPitch, audioSettings.RandomPitch);
 
         audioSource.loop = audioSettings.Loop;
 
@@ -146,10 +163,10 @@ public partial class AudioManager : MonoBehaviour
 
     public void PlaySound(AudioItem audioItem)
     {
-        PlaySound(audioItem, audioItem.Volume);
+        PlaySound(audioItem, null);
     }
 
-    public void PlaySound(AudioItem audioItem, float volume)
+    public void PlaySound(AudioItem audioItem, float? volume)
     {
         RemoveAllMissingSources();
         
@@ -188,8 +205,6 @@ public partial class AudioManager : MonoBehaviour
 
         // Apply settings to audio source
         ApplySettingsToAudioSource(audioSource, audioItem, volume);
-
-        Debug.Log("wuuhuuu");
 
         audioSource.GetComponent<AudioSourceComp>().DoDestroyOnLoad = !audioItem.DontDestroyOnLoad;
 
