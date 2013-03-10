@@ -114,7 +114,11 @@ public partial class AudioManager : MonoBehaviour
         {
             audioSource.volume = (float)volume;
         }
-        
+
+        audioSource.volume *= (audioSettings.Type == AudioItem.SoundType.Music
+                                   ? Settings.MusicVolume
+                                   : Settings.SoundEffectsVolume);
+
         audioSource.volume *= Settings.MasterVolume;
 
         audioSource.pitch = audioSettings.Pitch + Random.Range(-audioSettings.RandomPitch, audioSettings.RandomPitch);

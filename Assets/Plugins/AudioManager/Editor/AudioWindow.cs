@@ -137,8 +137,21 @@ public class AudioWindow : EditorWindow
         
         DrawSeperator("Global Settings");
 
+        // Master volume
         GUILayout.BeginHorizontal();
-        AudioManagerPrefab.Settings.MasterVolume = 0.01f * EditorGUILayout.Slider("Volume", (int)(AudioManagerPrefab.Settings.MasterVolume * 100), 0, 100);
+        AudioManagerPrefab.Settings.MasterVolume = 0.01f * EditorGUILayout.Slider("Master Volume", (int)(AudioManagerPrefab.Settings.MasterVolume * 100), 0, 100);
+        GUILayout.Label("%");
+        GUILayout.EndHorizontal();
+
+        // Music volume
+        GUILayout.BeginHorizontal();
+        AudioManagerPrefab.Settings.MusicVolume = 0.01f * EditorGUILayout.Slider("Music Volume", (int)(AudioManagerPrefab.Settings.MusicVolume * 100), 0, 100);
+        GUILayout.Label("%");
+        GUILayout.EndHorizontal();
+
+        // Sfx volume
+        GUILayout.BeginHorizontal();
+        AudioManagerPrefab.Settings.SoundEffectsVolume = 0.01f * EditorGUILayout.Slider("SFX Volume", (int)(AudioManagerPrefab.Settings.SoundEffectsVolume * 100), 0, 100);
         GUILayout.Label("%");
         GUILayout.EndHorizontal();
 
