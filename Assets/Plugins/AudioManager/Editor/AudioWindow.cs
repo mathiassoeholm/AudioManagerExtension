@@ -87,9 +87,7 @@ public class AudioWindow : EditorWindow
             if (audioManagers.Length == 0)
             {
                 // Instantiate an audiomanager in the scene
-                audioManagerInScene = (Instantiate(AudioManagerPrefab.gameObject) as GameObject).GetComponent<AudioManager>();
-
-                //audioManagerInScene.gameObject.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
+                audioManagerInScene = (PrefabUtility.InstantiatePrefab(AudioManagerPrefab.gameObject) as GameObject).GetComponent<AudioManager>();
             }
             else if (audioManagers.Length >= 1)
             {
@@ -110,7 +108,8 @@ public class AudioWindow : EditorWindow
         }
         else
         {
-            ApplySettingsToAudioManagerInstance();
+            PrefabUtility.ResetToPrefabState(audioManagerInScene);
+            //ApplySettingsToAudioManagerInstance();
         }
 
         isInEditor = !EditorApplication.isPaused && !EditorApplication.isPlaying;

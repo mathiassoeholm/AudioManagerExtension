@@ -18,6 +18,8 @@ public partial class AudioManager : MonoBehaviour
     void Awake()
     {
         instance = this;
+
+        RemoveAllMissingSources();
     }
 
 	void Start ()
