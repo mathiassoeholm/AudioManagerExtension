@@ -21,12 +21,12 @@ public partial class AudioManager : MonoBehaviour
 
 	void Start ()
     {
-        Debug.Log("AudioManager .Start()");
+        Debug.Log("AudioManager .Start()" + AudioItems.Length);
         
         // Play start on awake sounds
 	    for (int i = 0; i < AudioItems.Length; i++)
 	    {
-	        if (AudioItems[i].PlayOnAwake)
+	        if (AudioItems[i].PlayOnAwake && !audioSources.Any(a => a.clip == AudioItems[i].Clip && a.isPlaying))
 	        {
                 PlaySound(i, AudioItems[i].Volume); 
 	        }
@@ -108,8 +108,6 @@ public partial class AudioManager : MonoBehaviour
 
         audioSource.loop = audioSettings.Loop;
 
-        audioSource.playOnAwake = audioSettings.PlayOnAwake;
-
         audioSource.pan = audioSettings.Pan2D;
     }
 
@@ -177,6 +175,8 @@ public partial class AudioManager : MonoBehaviour
             // Create audio source
             audioSource = new GameObject("AudioSource").AddComponent<AudioSourceComp>().gameObject.AddComponent<AudioSource>();
 
+            audioSource.playOnAwake = false;
+
            // audioSource.gameObject.hideFlags = HideFlags.DontSave;
 
             // Add new audio source to our list
@@ -189,7 +189,9 @@ public partial class AudioManager : MonoBehaviour
         // Apply settings to audio source
         ApplySettingsToAudioSource(audioSource, audioItem, volume);
 
-        audioSource.GetComponent<AudioSourceComp>().DoDestroyOnLoad = audioItem.DontDestroyOnLoad;
+        Debug.Log("wuuhuuu");
+
+        audioSource.GetComponent<AudioSourceComp>().DoDestroyOnLoad = !audioItem.DontDestroyOnLoad;
 
         // Play the clip with the selected audio source
         audioSource.Play();
