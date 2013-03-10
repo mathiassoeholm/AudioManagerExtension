@@ -107,19 +107,13 @@ public partial class AudioManager : MonoBehaviour
         {
             audioSource.volume = audioSettings.Volume +
                                  Random.Range(-audioSettings.RandomVolume, audioSettings.RandomVolume);
-
-            Debug.Log("Random");
         }
         else
         {
             audioSource.volume = (float)volume;
-
-            Debug.Log("pfff");
         }
         
         audioSource.volume *= Settings.MasterVolume;
-
-        Debug.Log("pfff");
 
         audioSource.pitch = audioSettings.Pitch + Random.Range(-audioSettings.RandomPitch, audioSettings.RandomPitch);
 
