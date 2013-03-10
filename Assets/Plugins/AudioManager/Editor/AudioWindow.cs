@@ -290,7 +290,7 @@ public class AudioWindow : EditorWindow
         // Play on awake toggle
         audioItem.PlayOnAwake = EditorGUILayout.Toggle("Play on Awake", audioItem.PlayOnAwake);
 
-        // Don't destroy on laod toggle
+        // Don't destroy on load toggle
         audioItem.DontDestroyOnLoad = EditorGUILayout.Toggle("Don't destroy on load", audioItem.DontDestroyOnLoad);
 
         EditorGUILayout.BeginHorizontal();
@@ -342,6 +342,8 @@ public class AudioWindow : EditorWindow
                     otherAudioItem.Pitch = audioItem.Pitch;
                     otherAudioItem.Volume = audioItem.Volume;
                     otherAudioItem.PlayOnAwake = audioItem.PlayOnAwake;
+                    otherAudioItem.RandomPitch = audioItem.RandomPitch;
+                    otherAudioItem.RandomVolume = audioItem.RandomVolume;
                 }
             }
 
