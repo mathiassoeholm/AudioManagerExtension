@@ -42,6 +42,19 @@ public partial class AudioManager : MonoBehaviour
         audioSources = new List<AudioSource>();
     }
 
+    public static void PlaySound(string name)
+    {
+        AudioItem item = instance.AudioItems.FirstOrDefault(a => a.Name == name);
+
+        if (item == null)
+        {
+            throw new NullReferenceException("No audio items matched the given name");
+        }
+
+        instance.PlaySound(item, null);
+    }
+
+
     private static void PlaySound (int id, float? volume)
     {
         // Use the audio manager instance to play a sound
