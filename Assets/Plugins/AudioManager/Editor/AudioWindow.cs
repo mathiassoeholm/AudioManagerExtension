@@ -26,8 +26,6 @@ public class AudioWindow : EditorWindow
     {
         get
         {
-#if UNITY_WEBPLAYER
-#else
             if (audioManagerPrefab == null)
             {
                 // Load asset
@@ -35,7 +33,6 @@ public class AudioWindow : EditorWindow
                     (Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof (GameObject))
                      as GameObject).GetComponent<AudioManager>();
             }
-#endif
 
             return audioManagerPrefab;
         }
@@ -64,10 +61,6 @@ public class AudioWindow : EditorWindow
 
     private void Update()
     {
-        #if UNITY_WEBPLAYER
-        return;
-        #endif
-
 
         if (isInEditor && (EditorApplication.isPlaying || EditorApplication.isPaused))
         {
@@ -117,11 +110,7 @@ public class AudioWindow : EditorWindow
 
     private void OnGUI()
     {
-#if UNITY_WEBPLAYER
-        EditorGUILayout.LabelField("Webplayer is currently not supperted, change platform in build settings");
-        
-        return;
-#endif
+
 
         if (audioManagerInScene == null)
         {
@@ -181,12 +170,12 @@ public class AudioWindow : EditorWindow
             DrawAudioItemGui(AudioManagerPrefab.AudioItems[selectedAudioIndex]);
         }
 
+
+
         if (GUI.changed)
         { 
             EditorUtility.SetDirty(AudioManagerPrefab.gameObject);
 
-            
-            
             Repaint();
         }
     }
@@ -341,6 +330,10 @@ public class AudioWindow : EditorWindow
         }
 
         EditorGUILayout.EndHorizontal();
+
+#if UNITY_WEBPLAYER
+        GUILayout.Box("Note: Webplayer platform doesn't generate static play methods, instead you have to play the audio files by name. For Example: \nAudioManager.PlaySound(" + audioItem.Name + ");");
+#endif
 
         if (GUI.changed)
         {
@@ -521,10 +514,10 @@ public class AudioWindow : EditorWindow
             writer.WriteLine(@"#endregion");
         }
 
-#endif
-
         // Reimport generated file
         AssetDatabase.ImportAsset(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs", ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
+
+#endif
     }
 
     private void AddSelectedItems()
