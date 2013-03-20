@@ -10,6 +10,7 @@ Assets/Audio
 *.unity
 ProjectSettings/AudioItems
 Assets/Plugins/AudioManager/AudioManagerGenerated.cs
+Assets/LoadSceneOnEnter.cs
 
 # Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
 [Bb]in/
