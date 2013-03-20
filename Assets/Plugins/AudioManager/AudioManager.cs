@@ -10,40 +10,52 @@ public partial class AudioManager : MonoBehaviour
 
     public AudioManagerSettings Settings;
 
-    // List keeping track of all audio sources in the scene, used to play sound effects
+    /// <summary>
+    /// List keeping track of all audio sources in the scene, used to play sound effects.
+    /// </summary>
     private static List<AudioSource> audioSources = new List<AudioSource>();
-
+    
+    /// <summary>
+    /// Used to acces instance method in a static context.
+    /// </summary>
     private static AudioManager instance;
 
-    void Awake()
+    private void Awake()
     {
+        // Save the static instance
         instance = this;
 
         RemoveAllMissingSources();
     }
 
-	void Start ()
+	private void Start()
     {
-        Debug.Log("AudioManager .Start()" + AudioItems.Length);
-        
         // Play start on awake sounds
 	    for (int i = 0; i < AudioItems.Length; i++)
 	    {
-	        if (AudioItems[i].PlayOnAwake && !audioSources.Any(a => a.clip == AudioItems[i].Clip && a.isPlaying))
+	        // Check the play on awake bool, and make sure the sound isn't already playing
+            if (AudioItems[i].PlayOnAwake && !audioSources.Any(a => a.clip == AudioItems[i].Clip && a.isPlaying))
 	        {
                 PlaySound(i, AudioItems[i].Volume); 
 	        }
 	    }
 	}
 
-    void OnApplicationQuit()
+    private void OnApplicationQuit()
     {
         // Reset audio sources list
         audioSources = new List<AudioSource>();
     }
 
+    /// <summary>
+    /// Plays a sound matching the given name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the audio clip.
+    /// </param>
     public static void PlaySound(string name)
     {
+        // Find an audio item matching the given name
         AudioItem item = instance.AudioItems.FirstOrDefault(a => a.Name == name);
 
         if (item == null)
@@ -51,25 +63,8 @@ public partial class AudioManager : MonoBehaviour
             throw new NullReferenceException("No audio items matched the given name");
         }
 
+        // Play the sound, and omit explicit volume
         instance.PlaySound(item, null);
-    }
-
-
-    private static void PlaySound (int id, float? volume)
-    {
-        // Use the audio manager instance to play a sound
-        instance.PlaySound(instance.AudioItems[id], volume == null ? instance.AudioItems[id].Volume : (float)volume);
-    }
-
-    private static void StopSound(int id)
-    {
-        foreach (AudioSource audioSource in audioSources)
-        {
-            if (audioSource.clip == instance.AudioItems[id].Clip)
-            {
-                audioSource.Stop();
-            }
-        }
     }
 
     public bool IsAudioItemPlaying(AudioItem item)
@@ -80,17 +75,29 @@ public partial class AudioManager : MonoBehaviour
         return audioSources.Any(audioSource => audioSource.clip == item.Clip && audioSource.isPlaying);
     }
 
+    /// <summary>
+    /// Adds audio sources in the scene which are not contained in our list.
+    /// This method should only be used in the editor to collect any leaked audio sources.
+    /// It is very slow, so don't call continuously.
+    /// </summary>
     public void AddLeakedAudioSources()
     {
-        foreach (AudioSource audioSource in FindSceneObjectsOfType(typeof(AudioSource)).OfType<AudioSource>())
+        foreach (AudioSource audioSource in FindSceneObjectsOfType(typeof(AudioSource)).OfType<AudioSource>().Where(a => !audioSources.Contains(a)))
         {
-            if (!audioSources.Contains(audioSource))
-            {
-                audioSources.Add(audioSource);
-            }
+             audioSources.Add(audioSource);
         }
     }
 
+
+    /// <summary>
+    /// Destroys any audio sources un the scene with a specified clip.
+    /// This is used when deleting audio items.
+    /// This method should only be used in the editor.
+    /// It is very slow, so don't call continuously.
+    /// </summary>
+    /// <param name="clip">
+    /// The audio clip to look for.
+    /// </param>
     public void RemoveAllAudioSourcesWithClip(AudioClip clip)
     {
         AddLeakedAudioSources();
@@ -105,80 +112,75 @@ public partial class AudioManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates all audio sources with the same clip with new settings.
+    /// </summary>
+    /// <param name="itemToUpdate">
+    /// The audio item to update from.
+    /// </param>
     public void UpdateAudioSourcesWithNewSettings(AudioItem itemToUpdate)
     {
         foreach (AudioSource audioSource in audioSources)
         {
+            // Check if audio clips are the same
             if (audioSource.clip == itemToUpdate.Clip)
             {
-                ApplySettingsToAudioSource(audioSource, itemToUpdate);
+                // Apply settings
+                ApplySettingsToAudioSource(audioSource, itemToUpdate, null);
             }
         }
     }
 
-    private void ApplySettingsToAudioSource(AudioSource audioSource, AudioItem audioSettings, float? volume = null)
-    {
-        if (volume == null)
-        {
-            audioSource.volume = audioSettings.Volume +
-                                 Random.Range(-audioSettings.RandomVolume, audioSettings.RandomVolume);
-        }
-        else
-        {
-            audioSource.volume = (float)volume;
-        }
-
-        audioSource.volume *= (audioSettings.Type == AudioItem.SoundType.Music
-                                   ? Settings.MusicVolume
-                                   : Settings.SoundEffectsVolume);
-
-        audioSource.volume *= Settings.MasterVolume;
-
-        audioSource.pitch = audioSettings.Pitch + Random.Range(-audioSettings.RandomPitch, audioSettings.RandomPitch);
-
-        audioSource.loop = audioSettings.Loop;
-
-        audioSource.pan = audioSettings.Pan2D;
-    }
-
-    private void RemoveAllMissingSources()
-    {
-        // Remove destroyed audio sources from the list
-        for (int i = audioSources.Count - 1; i >= 0; i--)
-        {
-            if (audioSources[i] == null)
-            {
-                audioSources.RemoveAt(i);
-            }
-        }
-    }
-
+    /// <summary>
+    /// Stops all audio sources matching the audio item.
+    /// </summary>
+    /// <param name="item">
+    /// The audio item to stop.
+    /// </param>
     public void StopAudioItem(AudioItem item)
     {
-        // Destroy any audio sources with this sound
         for (int i = audioSources.Count - 1; i >= 0; i--)
         {
+            // Check if audio clips are the same
             if (audioSources[i].clip == item.Clip)
             {
+                // Stop the audio sources
                 audioSources[i].Stop();
             }
         }
     }
 
+    /// <summary>
+    ///  Stops all audio sources from playing.
+    /// </summary>
     public void StopAllSounds()
     {
-        // Stop all audio sources
         for (int i = audioSources.Count - 1; i >= 0; i--)
         {
             audioSources[i].Stop();
         }
     }
 
+    /// <summary>
+    /// Plays a sound, from a given audio item.
+    /// </summary>
+    /// <param name="audioItem">
+    /// The audio item to play a sound from.
+    /// </param>
     public void PlaySound(AudioItem audioItem)
     {
         PlaySound(audioItem, null);
     }
 
+    /// <summary>
+    /// Plays a sound with the given arguments, all overloads just delegates responsibity to this method.
+    /// </summary>
+    /// <param name="audioItem">
+    /// The audio item to play a sound from.
+    /// </param>
+    /// <param name="volume">
+    /// Volume factor from 0 to 1. (null means audio items standard volume)
+    /// </param>
     public void PlaySound(AudioItem audioItem, float? volume)
     {
         RemoveAllMissingSources();
@@ -205,9 +207,11 @@ public partial class AudioManager : MonoBehaviour
             // Create audio source
             audioSource = new GameObject("AudioSource").AddComponent<AudioSourceComp>().gameObject.AddComponent<AudioSource>();
 
+            // Make sure play on awake defaults to false
             audioSource.playOnAwake = false;
 
-           // audioSource.gameObject.hideFlags = HideFlags.DontSave;
+            // TODO: Enable hide of audio sources
+            //audioSource.gameObject.hideFlags = HideFlags.HideInHierarchy;
 
             // Add new audio source to our list
             audioSources.Add(audioSource);
@@ -219,9 +223,58 @@ public partial class AudioManager : MonoBehaviour
         // Apply settings to audio source
         ApplySettingsToAudioSource(audioSource, audioItem, volume);
 
+        // Set destroy on load
         audioSource.GetComponent<AudioSourceComp>().DoDestroyOnLoad = !audioItem.DontDestroyOnLoad;
 
         // Play the clip with the selected audio source
         audioSource.Play();
+    }
+
+    private static void PlaySound (int id, float? volume)
+    {
+        // Use the audio manager instance to play a sound
+        instance.PlaySound(instance.AudioItems[id], volume ?? instance.AudioItems[id].Volume);
+    }
+
+    private static void StopSound(int id)
+    {
+        foreach (AudioSource audioSource in audioSources)
+        {
+            if (audioSource.clip == instance.AudioItems[id].Clip)
+            {
+                audioSource.Stop();
+            }
+        }
+    }
+
+    private void ApplySettingsToAudioSource(AudioSource audioSource, AudioItem audioSettings, float? volume)
+    {
+        
+        audioSource.volume = volume ?? audioSettings.Volume +
+                             Random.Range(-audioSettings.RandomVolume, audioSettings.RandomVolume);
+        
+        audioSource.volume *= (audioSettings.Type == AudioItem.SoundType.Music
+                                   ? Settings.MusicVolume
+                                   : Settings.SoundEffectsVolume);
+
+        audioSource.volume *= Settings.MasterVolume;
+
+        audioSource.pitch = audioSettings.Pitch + Random.Range(-audioSettings.RandomPitch, audioSettings.RandomPitch);
+
+        audioSource.loop = audioSettings.Loop;
+
+        audioSource.pan = audioSettings.Pan2D;
+    }
+
+    private void RemoveAllMissingSources()
+    {
+        // Remove destroyed audio sources from the list
+        for (int i = audioSources.Count - 1; i >= 0; i--)
+        {
+            if (audioSources[i] == null)
+            {
+                audioSources.RemoveAt(i);
+            }
+        }
     }
 }
