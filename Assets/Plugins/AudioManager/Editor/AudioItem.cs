@@ -13,7 +13,7 @@ public class AudioItem
 
     public enum PlayMode
     {
-        RandomNoRepeat,
+        RandomAntiRepeat,
         Random,
         Sequential,
         Reverse

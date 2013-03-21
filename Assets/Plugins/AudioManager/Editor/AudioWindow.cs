@@ -342,7 +342,12 @@ public class AudioWindow : EditorWindow
             audioItem.Mode = (AudioItem.PlayMode)System.Convert.ToInt32(EditorGUILayout.EnumPopup(audioItem.Mode));
         }
 
-        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.EndHorizontal();
+
+        if (audioItem.IsCollection)
+        {
+            GUILayout.Button("Add selected");
+        }
         
 
 #if UNITY_WEBPLAYER
