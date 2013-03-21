@@ -470,7 +470,9 @@ public class AudioWindow : EditorWindow
     {
         // Generate partial AudioManager class
         GenerateCode();
-        
+
+        EditorUtility.SetDirty(AudioManagerPrefab.gameObject);
+
         // Repaint
         Repaint();
     }
