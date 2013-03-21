@@ -20,9 +20,23 @@ public partial class AudioManager : MonoBehaviour
     /// </summary>
     private static AudioManager instance;
 
-    public static bool IsAllMuted { get; set; }
-    public static bool IsMusicMuted { get; set; }
-    public static bool IsSoundEffectsMuted { get; set; }
+    public bool IsAllMuted
+    {
+        get { return Settings.IsAllMuted; }
+        private set { Settings.IsAllMuted = value; }
+    }
+
+    public bool IsMusicMuted
+    {
+        get { return Settings.IsMusicMuted; }
+        private set { Settings.IsMusicMuted = value; }
+    }
+
+    public bool IsSoundEffectsMuted
+    {
+        get { return Settings.IsSoundEffectsMuted; }
+        private set { Settings.IsSoundEffectsMuted = value; }
+    }
 
     private void Awake()
     {
@@ -51,9 +65,92 @@ public partial class AudioManager : MonoBehaviour
         audioSources = new List<AudioSource>();
     }
 
-    public static void MuteAll()
+    public void MuteAll()
     {
-        
+        IsAllMuted = true;
+
+        foreach (AudioSourceComp a in audioSources.Select(a => a.GetComponent<AudioSourceComp>()))
+        {
+            a.Mute();
+        }
+    }
+
+    public void UnMuteAll()
+    {
+        IsAllMuted = false;
+
+        foreach (AudioSourceComp a in audioSources.Select(a => a.GetComponent<AudioSourceComp>()))
+        {
+            if ((AudioItems.FirstOrDefault(ai => ai.Clips.Contains(a.audio.clip)).Type == AudioItem.SoundType.SoundEffect &&
+                IsSoundEffectsMuted)
+               || (AudioItems.FirstOrDefault(ai => ai.Clips.Contains(a.audio.clip)).Type == AudioItem.SoundType.Music &&
+                IsMusicMuted))
+            {
+                continue;
+            }
+            
+            a.UnMute();
+        }
+    }
+
+    public void MuteAllMusic()
+    {
+        IsMusicMuted = true;
+
+        if (IsAllMuted)
+        {
+            return;
+        }
+
+        foreach (AudioSourceComp a in audioSources.Where(a => AudioItems.FirstOrDefault(ai => ai.Clips.Contains(a.clip)).Type == AudioItem.SoundType.Music).Select(a => a.GetComponent<AudioSourceComp>()))
+        {
+            a.Mute();
+        }
+    }
+
+    public void UnMuteAllMusic()
+    {
+        IsMusicMuted = false;
+
+        if (IsAllMuted)
+        {
+            return;
+        }
+
+        foreach (AudioSourceComp a in audioSources.Where(a => AudioItems.FirstOrDefault(ai => ai.Clips.Contains(a.clip)).Type == AudioItem.SoundType.Music).Select(a => a.GetComponent<AudioSourceComp>()))
+        {
+            a.UnMute();
+        }
+    }
+
+    public void MuteAllSoundEffects()
+    {
+        IsSoundEffectsMuted = true;
+
+        if (IsAllMuted)
+        {
+            return;
+        }
+
+        foreach (AudioSourceComp a in audioSources.Where(a => AudioItems.FirstOrDefault(ai => ai.Clips.Contains(a.clip)).Type == AudioItem.SoundType.SoundEffect).Select(a => a.GetComponent<AudioSourceComp>()))
+        {
+            a.Mute();
+        }
+    }
+
+    public void UnMuteAllSoundEffects()
+    {
+        IsSoundEffectsMuted = false;
+
+        if (IsAllMuted)
+        {
+            return;
+        }
+
+        foreach (AudioSourceComp a in audioSources.Where(a => AudioItems.FirstOrDefault(ai => ai.Clips.Contains(a.clip)).Type == AudioItem.SoundType.SoundEffect).Select(a => a.GetComponent<AudioSourceComp>()))
+        {
+            a.UnMute();
+        }
     }
 
     /// <summary>
@@ -214,7 +311,9 @@ public partial class AudioManager : MonoBehaviour
         if (!didFindAudioSource)
         {
             // Create audio source
-            audioSource = new GameObject("AudioSource").AddComponent<AudioSourceComp>().gameObject.AddComponent<AudioSource>();
+            audioSource = new GameObject("AudioSource").AddComponent<AudioSource>();
+
+            audioSource.gameObject.AddComponent<AudioSourceComp>();
 
             // Make sure play on awake defaults to false
             audioSource.playOnAwake = false;
@@ -273,6 +372,16 @@ public partial class AudioManager : MonoBehaviour
         audioSource.loop = audioSettings.Loop;
 
         audioSource.pan = audioSettings.Pan2D;
+
+        audioSource.GetComponent<AudioSourceComp>().Initialize();
+
+        if (IsAllMuted // Is everything muted?
+            || (audioSettings.Type == AudioItem.SoundType.Music && IsMusicMuted) // Is music muted?
+            || ((audioSettings.Type == AudioItem.SoundType.SoundEffect && IsSoundEffectsMuted))) // Are sound effects muted?
+        {
+            // Mute the audio source
+            audioSource.GetComponent<AudioSourceComp>().Mute();
+        }
     }
 
     private void RemoveAllMissingSources()

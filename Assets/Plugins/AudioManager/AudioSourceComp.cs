@@ -4,7 +4,11 @@ using System.Collections;
 public class AudioSourceComp : MonoBehaviour
 {
     private bool doDestroyOnLoad;
-    
+
+    private AudioSource source;
+
+    public float startVolume;
+
     public bool DoDestroyOnLoad
     {
         get { return doDestroyOnLoad; }
@@ -21,9 +25,25 @@ public class AudioSourceComp : MonoBehaviour
 
 	void Awake ()
     {
-	    if (doDestroyOnLoad)
+        if (doDestroyOnLoad)
 	    {
 	        Destroy(gameObject);
 	    }
 	}
+
+    public void Initialize()
+    {
+        source = audio;
+        startVolume = source.volume;
+    }
+
+    public void Mute()
+    {
+        source.volume = 0;
+    }
+
+    public void UnMute()
+    {
+        source.volume = startVolume;
+    }
 }

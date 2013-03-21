@@ -128,20 +128,62 @@ public class AudioWindow : EditorWindow
 
         // Master volume
         GUILayout.BeginHorizontal();
-        AudioManagerPrefab.Settings.MasterVolume = 0.01f * EditorGUILayout.Slider("Master Volume", (int)(AudioManagerPrefab.Settings.MasterVolume * 100), 0, 100);
+        
+        AudioManagerPrefab.Settings.MasterVolume = 0.01f * EditorGUILayout.Slider("Master", (int)(AudioManagerPrefab.Settings.MasterVolume * 100), 0, 100);
         GUILayout.Label("%");
+        
         GUILayout.EndHorizontal();
 
         // Music volume
         GUILayout.BeginHorizontal();
-        AudioManagerPrefab.Settings.MusicVolume = 0.01f * EditorGUILayout.Slider("Music Volume", (int)(AudioManagerPrefab.Settings.MusicVolume * 100), 0, 100);
+        AudioManagerPrefab.Settings.MusicVolume = 0.01f * EditorGUILayout.Slider("Music", (int)(AudioManagerPrefab.Settings.MusicVolume * 100), 0, 100);
         GUILayout.Label("%");
         GUILayout.EndHorizontal();
 
         // Sfx volume
         GUILayout.BeginHorizontal();
-        AudioManagerPrefab.Settings.SoundEffectsVolume = 0.01f * EditorGUILayout.Slider("SFX Volume", (int)(AudioManagerPrefab.Settings.SoundEffectsVolume * 100), 0, 100);
+        AudioManagerPrefab.Settings.SoundEffectsVolume = 0.01f * EditorGUILayout.Slider("SFX", (int)(AudioManagerPrefab.Settings.SoundEffectsVolume * 100), 0, 100);
         GUILayout.Label("%");
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+
+        if(GUILayout.Button(AudioManagerPrefab.Settings.IsAllMuted ? "Unmute All" : "Mute All"))
+        {
+            if (AudioManagerPrefab.IsAllMuted)
+            {
+                AudioManagerPrefab.UnMuteAll();
+            }
+            else
+            {
+                AudioManagerPrefab.MuteAll();
+            }
+        }
+
+        if(GUILayout.Button(AudioManagerPrefab.Settings.IsMusicMuted ? "Unmute Music" : "Mute Music"))
+        {
+            if (AudioManagerPrefab.IsMusicMuted)
+            {
+                AudioManagerPrefab.UnMuteAllMusic();
+            }
+            else
+            {
+                AudioManagerPrefab.MuteAllMusic();
+            }
+        }
+
+        if (GUILayout.Button(AudioManagerPrefab.Settings.IsSoundEffectsMuted ? "Unmute SFX" : "Mute SFX"))
+        {
+            if (AudioManagerPrefab.IsSoundEffectsMuted)
+            {
+                AudioManagerPrefab.UnMuteAllSoundEffects();
+            }
+            else
+            {
+                AudioManagerPrefab.MuteAllSoundEffects();
+            }
+        }
+
         GUILayout.EndHorizontal();
 
         DrawSeperator("Audio Files");
