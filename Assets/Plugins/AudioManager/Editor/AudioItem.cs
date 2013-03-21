@@ -10,10 +10,20 @@ public class AudioItem
         SoundEffect,
         Music
     }
+
+    public enum PlayMode
+    {
+        RandomNoRepeat,
+        Random,
+        Sequential,
+        Reverse
+    }
     
     public AudioClip[] Clips;
 
     public SoundType Type;
+
+    public PlayMode Mode;
 
     public string NameOfSyncSource;
 
@@ -24,6 +34,8 @@ public class AudioItem
     public bool Loop;
 
     public bool DontDestroyOnLoad;
+
+    public bool IsCollection;
 
     public float RandomPitch;
 

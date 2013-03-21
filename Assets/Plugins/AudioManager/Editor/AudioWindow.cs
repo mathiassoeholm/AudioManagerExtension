@@ -331,6 +331,20 @@ public class AudioWindow : EditorWindow
 
         EditorGUILayout.EndHorizontal();
 
+        EditorGUILayout.BeginHorizontal();
+
+        // Is collection toggle
+        audioItem.IsCollection = EditorGUILayout.Toggle("Is A Collection", audioItem.IsCollection);
+
+        if (audioItem.IsCollection)
+        {
+            // Play mode popup
+            audioItem.Mode = (AudioItem.PlayMode)System.Convert.ToInt32(EditorGUILayout.EnumPopup(audioItem.Mode));
+        }
+
+        EditorGUILayout.BeginHorizontal();
+        
+
 #if UNITY_WEBPLAYER
         GUILayout.Box("Note: Webplayer platform doesn't generate static play methods, instead you have to play the audio files by name. For Example: \nAudioManager.PlaySound(" + audioItem.Name + ");");
 #endif
