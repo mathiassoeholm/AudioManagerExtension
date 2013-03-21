@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 [Serializable]
 public class AudioItem
@@ -48,9 +49,51 @@ public class AudioItem
 
     public string Name;
 
+    private int lastUsedClip = -1;
+
     public AudioClip GetClip()
     {
-        return Clips[0];
+        if (!IsCollection || Clips.Length <= 1)
+        {
+            return Clips[0];
+        }
+
+        int clipToPlay = lastUsedClip;
+
+        switch (Mode)
+        {
+            case PlayMode.RandomAntiRepeat:
+                for (int i = 0; i < int.MaxValue; i++)
+                {
+                    clipToPlay = Random.Range(0, Clips.Length);
+
+                    // Check if we found a random clip that is not the latest one used
+                    if (clipToPlay != lastUsedClip)
+                    {
+                        break;
+                    }
+                }
+                break;
+            case PlayMode.Random:
+                clipToPlay = Random.Range(0, Clips.Length);
+                break;
+            case PlayMode.Sequential:
+                clipToPlay++;
+                clipToPlay %= Clips.Length;
+                break;
+            case PlayMode.Reverse:
+                clipToPlay--;
+
+                if (clipToPlay < 0)
+                {
+                    clipToPlay = Clips.Length - 1;
+                }
+                break;
+        }
+
+        lastUsedClip = clipToPlay;
+
+        return Clips[clipToPlay];
     }
 }
 
