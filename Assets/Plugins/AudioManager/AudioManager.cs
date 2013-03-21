@@ -20,6 +20,10 @@ public partial class AudioManager : MonoBehaviour
     /// </summary>
     private static AudioManager instance;
 
+    public static bool IsAllMuted { get; set; }
+    public static bool IsMusicMuted { get; set; }
+    public static bool IsSoundEffectsMuted { get; set; }
+
     private void Awake()
     {
         // Save the static instance
@@ -34,7 +38,7 @@ public partial class AudioManager : MonoBehaviour
 	    for (int i = 0; i < AudioItems.Length; i++)
 	    {
 	        // Check the play on awake bool, and make sure the sound isn't already playing
-            if (AudioItems[i].PlayOnAwake && !audioSources.Any(a => a.clip == AudioItems[i].Clip && a.isPlaying))
+            if (AudioItems[i].PlayOnAwake && !audioSources.Any(a => AudioItems[i].Clips.Contains(a.clip) && a.isPlaying))
 	        {
                 PlaySound(i, AudioItems[i].Volume); 
 	        }
@@ -45,6 +49,11 @@ public partial class AudioManager : MonoBehaviour
     {
         // Reset audio sources list
         audioSources = new List<AudioSource>();
+    }
+
+    public static void MuteAll()
+    {
+        
     }
 
     /// <summary>
@@ -72,7 +81,7 @@ public partial class AudioManager : MonoBehaviour
         // Remove destroyed audio sources from the list
         RemoveAllMissingSources();
         
-        return audioSources.Any(audioSource => audioSource.clip == item.Clip && audioSource.isPlaying);
+        return audioSources.Any(audioSource => item.Clips.Contains(audioSource.clip) && audioSource.isPlaying);
     }
 
     /// <summary>
@@ -123,7 +132,7 @@ public partial class AudioManager : MonoBehaviour
         foreach (AudioSource audioSource in audioSources)
         {
             // Check if audio clips are the same
-            if (audioSource.clip == itemToUpdate.Clip)
+            if (itemToUpdate.Clips.Contains(audioSource.clip))
             {
                 // Apply settings
                 ApplySettingsToAudioSource(audioSource, itemToUpdate, null);
@@ -142,7 +151,7 @@ public partial class AudioManager : MonoBehaviour
         for (int i = audioSources.Count - 1; i >= 0; i--)
         {
             // Check if audio clips are the same
-            if (audioSources[i].clip == item.Clip)
+            if (item.Clips.Contains(audioSources[i].clip))
             {
                 // Stop the audio sources
                 audioSources[i].Stop();
@@ -218,7 +227,7 @@ public partial class AudioManager : MonoBehaviour
         }
 
         // Assign the clip to the selected audio source
-        audioSource.clip = audioItem.Clip;
+        audioSource.clip = audioItem.GetClip();
 
         // Apply settings to audio source
         ApplySettingsToAudioSource(audioSource, audioItem, volume);
@@ -240,7 +249,7 @@ public partial class AudioManager : MonoBehaviour
     {
         foreach (AudioSource audioSource in audioSources)
         {
-            if (audioSource.clip == instance.AudioItems[id].Clip)
+            if (instance.AudioItems[id].Clips.Contains(audioSource.clip))
             {
                 audioSource.Stop();
             }

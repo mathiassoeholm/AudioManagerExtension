@@ -260,7 +260,7 @@ public class AudioWindow : EditorWindow
         EditorGUILayout.EndHorizontal();
 
         // Clip object field
-        audioItem.Clip = EditorGUILayout.ObjectField("Clip", audioItem.Clip, typeof(AudioClip), false) as AudioClip;
+        audioItem.Clips[0] = EditorGUILayout.ObjectField("Clip", audioItem.Clips[0], typeof(AudioClip), false) as AudioClip;
 
         // Volume slider
         EditorGUILayout.BeginHorizontal();
@@ -396,7 +396,7 @@ public class AudioWindow : EditorWindow
     private bool AddAudioFile(AudioClip audioClip)
     {
         // Make sure the file isn't already added
-        if (audioManagerPrefab.AudioItems.Select(item => item.Clip).Contains(audioClip))
+        if (audioManagerPrefab.AudioItems.Select(item => item.Clips[0]).Contains(audioClip))
         {
             // Return if the file is already in the list
             return false;
@@ -405,9 +405,11 @@ public class AudioWindow : EditorWindow
         // Add an audio item to the array
         List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
 
+        AudioClip[] clip = {audioClip};
+
         AudioItem newAudiItem = new AudioItem
             {
-                Clip = audioClip,
+                Clips = clip,
                 Volume = 1,
                 Name = audioClip.name,
                 Type = audioClip.length > 8 ? AudioItem.SoundType.Music : AudioItem.SoundType.SoundEffect
@@ -432,7 +434,10 @@ public class AudioWindow : EditorWindow
         // Stop any sources with this sound from playing
         audioManagerInScene.StopAudioItem(item);
 
-        audioManagerInScene.RemoveAllAudioSourcesWithClip(item.Clip);
+        foreach (AudioClip clip in item.Clips)
+        {
+            audioManagerInScene.RemoveAllAudioSourcesWithClip(clip);
+        }
 
         // Remove an audio item from the array
         List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();

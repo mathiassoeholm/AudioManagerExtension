@@ -11,7 +11,7 @@ public class AudioItem
         Music
     }
     
-    public AudioClip Clip;
+    public AudioClip[] Clips;
 
     public SoundType Type;
 
@@ -36,5 +36,10 @@ public class AudioItem
     public float Pan2D;
 
     public string Name;
+
+    public AudioClip GetClip()
+    {
+        return Clips[0];
+    }
 }
 
