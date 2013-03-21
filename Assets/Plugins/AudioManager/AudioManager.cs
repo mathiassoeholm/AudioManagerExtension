@@ -65,6 +65,36 @@ public partial class AudioManager : MonoBehaviour
         audioSources = new List<AudioSource>();
     }
 
+    public static void MuteEverything()
+    {
+        instance.MuteAll();
+    }
+
+    public static void MuteSoundEffects()
+    {
+        instance.MuteAllSoundEffects();
+    }
+
+    public static void MuteMusic()
+    {
+        instance.MuteAllMusic();
+    }
+
+    public static void UnMuteEverything()
+    {
+        instance.UnMuteAll();
+    }
+
+    public static void UnMuteSoundEffects()
+    {
+        instance.UnMuteAllSoundEffects();
+    }
+
+    public static void UnMuteMusic()
+    {
+        instance.UnMuteAllMusic();
+    }
+
     public void MuteAll()
     {
         IsAllMuted = true;
