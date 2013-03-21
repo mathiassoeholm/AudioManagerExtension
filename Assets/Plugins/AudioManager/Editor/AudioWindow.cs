@@ -200,7 +200,7 @@ public class AudioWindow : EditorWindow
             EditorGUILayout.Popup(0, new string[]{"No audio files added"});
         }
 
-        if (GUILayout.Button("Add Selected"))
+        if (GUILayout.Button("Add Selected files"))
         {
             AddSelectedItems();
         }
@@ -373,24 +373,50 @@ public class AudioWindow : EditorWindow
 
         EditorGUILayout.EndHorizontal();
 
-        EditorGUILayout.BeginHorizontal();
-
         // Is collection toggle
         audioItem.IsCollection = EditorGUILayout.Toggle("Is A Collection", audioItem.IsCollection);
 
         if (audioItem.IsCollection)
         {
+            EditorGUILayout.BeginHorizontal();
+            
             // Play mode popup
             audioItem.Mode = (AudioItem.PlayMode)System.Convert.ToInt32(EditorGUILayout.EnumPopup(audioItem.Mode));
-        }
-
-        EditorGUILayout.EndHorizontal();
-
-        if (audioItem.IsCollection)
-        {
-            GUILayout.Button("Add selected");
-        }
         
+            if (GUILayout.Button("Add selected files"))
+            {
+                AddSelectedItemsToCollection();
+            }
+
+            EditorGUILayout.EndHorizontal();
+
+            int? itemIndexToRemove = null;
+
+            for (int i = 1; i < audioItem.Clips.Length; i++)
+            {
+                EditorGUILayout.BeginHorizontal();
+
+                // Change color to red
+                GUI.color = new Color(1, 0.3f, 0.3f);
+
+                if (GUILayout.Button("x", EditorStyles.miniButton, GUILayout.MaxWidth(20)))
+                {
+                    itemIndexToRemove = i;
+                }
+
+                // Reset color
+                GUI.color = oldColor;
+                
+                audioItem.Clips[i] = EditorGUILayout.ObjectField(audioItem.Clips[i], typeof(AudioClip), false) as AudioClip;
+
+                EditorGUILayout.EndHorizontal();
+            }
+
+            if (itemIndexToRemove != null)
+            {
+                RemoveClipFromCollection((int)itemIndexToRemove);
+            }
+        }
 
 #if UNITY_WEBPLAYER
         GUILayout.Box("Note: Webplayer platform doesn't generate static play methods, instead you have to play the audio files by name. For Example: \nAudioManager.PlaySound(" + audioItem.Name + ");");
@@ -586,6 +612,45 @@ public class AudioWindow : EditorWindow
         AssetDatabase.ImportAsset(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs", ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
 
 #endif
+    }
+
+    private void RemoveClipFromCollection(int itemIndex)
+    {
+        AudioItem selectedAudioItem = AudioManagerPrefab.AudioItems[selectedAudioIndex];
+        
+        List<AudioClip> clips = new List<AudioClip>(AudioManagerPrefab.AudioItems[selectedAudioIndex].Clips);
+
+        clips.RemoveAt(itemIndex);
+
+        selectedAudioItem.Clips = clips.ToArray();
+    }
+
+    private void AddSelectedItemsToCollection()
+    {
+        // Make sure that at least one audio item is added
+        if (AudioManagerPrefab.AudioItems.Length == 0)
+        {
+            return;  
+        }
+        
+        AudioItem selectedAudioItem = AudioManagerPrefab.AudioItems[selectedAudioIndex];
+
+        List<AudioClip> clipsToAdd = new List<AudioClip>(selectedAudioItem.Clips);
+
+        foreach (Object obj in Selection.objects)
+        {
+            if (AssetDatabase.Contains(obj) && obj is AudioClip && !clipsToAdd.Contains(obj as AudioClip))
+            {
+                clipsToAdd.Add(obj as AudioClip);
+            }
+        }
+
+        // Apply new collection
+        selectedAudioItem.Clips = clipsToAdd.ToArray();
+
+        // Set dirty and repaint
+        EditorUtility.SetDirty(AudioManagerPrefab.gameObject);
+        Repaint();
     }
 
     private void AddSelectedItems()
