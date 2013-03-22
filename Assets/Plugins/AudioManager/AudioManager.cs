@@ -20,10 +20,44 @@ public partial class AudioManager : MonoBehaviour
     /// </summary>
     private static AudioManager instance;
 
+    public static float MasterVolume
+    {
+        get { return instance.Settings.MasterVolume; }
+        set
+        {
+            instance.Settings.MasterVolume = Mathf.Clamp(value, 0, 1);
+
+            instance.UpdateVolumeSettings();
+        }
+    }
+
+    public static float MusicVolume
+    {
+        get { return instance.Settings.MusicVolume; }
+        set
+        {
+            instance.Settings.MusicVolume = Mathf.Clamp(value, 0, 1);
+
+            instance.UpdateVolumeSettings();
+        }
+    }
+
+    public static float SoundEffectsVolume
+    {
+        get { return instance.Settings.SoundEffectsVolume; }
+        set
+        {
+            instance.Settings.SoundEffectsVolume = Mathf.Clamp(value, 0, 1);
+
+            instance.UpdateVolumeSettings();
+        }
+    }
+
+
     public bool IsAllMuted
     {
         get { return Settings.IsAllMuted; }
-        private set { Settings.IsAllMuted = value; }
+        private set {Settings.IsAllMuted = value; }
     }
 
     public bool IsMusicMuted
@@ -201,6 +235,31 @@ public partial class AudioManager : MonoBehaviour
 
         // Play the sound, and omit explicit volume
         instance.PlaySound(item, null);
+    }
+
+    /// <summary>
+    /// Stops a sound matching the given name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the audio clip.
+    /// </param>
+    public static void StopSound(string name)
+    {
+        // Find an audio item matching the given name
+        AudioItem item = instance.AudioItems.FirstOrDefault(a => a.Name == name);
+
+        if (item == null)
+        {
+            throw new NullReferenceException("No audio items matched the given name");
+        }
+
+        foreach (AudioSource audioSource in audioSources)
+        {
+            if (item.Clips.Contains(audioSource.clip))
+            {
+                audioSource.Stop();
+            }
+        }
     }
 
     public bool IsAudioItemPlaying(AudioItem item)
@@ -385,12 +444,24 @@ public partial class AudioManager : MonoBehaviour
         }
     }
 
+    private void UpdateVolumeSettings()
+    {
+        foreach (AudioSource audioSource in audioSources)
+        {
+            AudioItem audioItem = AudioItems.FirstOrDefault(ai => ai.Clips.Contains(audioSource.clip));
+
+            audioSource.GetComponent<AudioSourceComp>().UpdateVolume(Settings.MasterVolume, audioItem.Type == AudioItem.SoundType.Music ? Settings.MusicVolume : Settings.SoundEffectsVolume);
+        }
+    }
+
     private void ApplySettingsToAudioSource(AudioSource audioSource, AudioItem audioSettings, float? volume)
     {
-        
+       
         audioSource.volume = volume ?? audioSettings.Volume +
                              Random.Range(-audioSettings.RandomVolume, audioSettings.RandomVolume);
-        
+
+        audioSource.GetComponent<AudioSourceComp>().PreInitialize();
+
         audioSource.volume *= (audioSettings.Type == AudioItem.SoundType.Music
                                    ? Settings.MusicVolume
                                    : Settings.SoundEffectsVolume);

@@ -7,7 +7,8 @@ public class AudioSourceComp : MonoBehaviour
 
     private AudioSource source;
 
-    public float startVolume;
+    public float volume;
+    public float originVolume;
 
     public bool DoDestroyOnLoad
     {
@@ -31,10 +32,21 @@ public class AudioSourceComp : MonoBehaviour
 	    }
 	}
 
-    public void Initialize()
+    public void PreInitialize()
     {
         source = audio;
-        startVolume = source.volume;
+        originVolume = source.volume;
+    }
+
+    public void Initialize()
+    {
+        volume = source.volume;
+    }
+
+    public void UpdateVolume(float masterVolume, float otherFactor)
+    {
+        volume = originVolume * masterVolume * otherFactor;
+        source.volume = volume;
     }
 
     public void Mute()
@@ -44,6 +56,6 @@ public class AudioSourceComp : MonoBehaviour
 
     public void UnMute()
     {
-        source.volume = startVolume;
+        source.volume = volume;
     }
 }
