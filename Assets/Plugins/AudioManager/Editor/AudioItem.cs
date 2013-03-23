@@ -63,16 +63,16 @@ public class AudioItem
         switch (Mode)
         {
             case PlayMode.RandomAntiRepeat:
-                for (int i = 0; i < int.MaxValue; i++)
-                {
-                    clipToPlay = Random.Range(0, Clips.Length);
+                clipToPlay = Random.Range(0, Clips.Length);
 
-                    // Check if we found a random clip that is not the latest one used
-                    if (clipToPlay != lastUsedClip)
-                    {
-                        break;
-                    }
+                // Check if we found a random clip that is not the latest one used
+                if (clipToPlay != lastUsedClip)
+                {
+                    break;
                 }
+
+                clipToPlay++;
+                clipToPlay %= Clips.Length;
                 break;
             case PlayMode.Random:
                 clipToPlay = Random.Range(0, Clips.Length);
