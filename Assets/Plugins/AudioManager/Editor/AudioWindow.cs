@@ -419,7 +419,7 @@ public class AudioWindow : EditorWindow
         }
 
 #if UNITY_WEBPLAYER
-        GUILayout.Box("Note: Webplayer platform doesn't generate static play methods, instead you have to play the audio files by name. For Example: \nAudioManager.PlaySound(" + audioItem.Name + ");");
+        GUILayout.Box("Note: Webplayer platform doesn't generate static play methods, instead you have to play the audio files by name. For Example: \nAudioManager.PlaySound(\"" + audioItem.Name + "\");");
 #endif
 
         if (GUI.changed)
