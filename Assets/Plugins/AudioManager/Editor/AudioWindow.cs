@@ -452,10 +452,11 @@ public class AudioWindow : EditorWindow
         // Cache the old color
         Color oldColor = GUI.color;
         
-        GUI.color = new Color(0.7f, 0.7f, 1);
+        GUI.color = new Color(1f, 1f, 1);
 
-        Rect seperator = GUILayoutUtility.GetRect(0, 20, GUILayout.ExpandWidth(true));
-        GUI.Box(seperator, text);
+        //Rect seperator = GUILayoutUtility.GetRect(0, 20, GUILayout.ExpandWidth(true));
+        //GUI.Box(seperator, text);
+        EditorGUILayout.LabelField("- " + text, EditorStyles.largeLabel);
 
         // Reset color
         GUI.color = oldColor;
