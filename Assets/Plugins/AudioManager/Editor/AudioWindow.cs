@@ -212,8 +212,6 @@ public class AudioWindow : EditorWindow
             DrawAudioItemGui(AudioManagerPrefab.AudioItems[selectedAudioIndex]);
         }
 
-
-
         if (GUI.changed)
         { 
             EditorUtility.SetDirty(AudioManagerPrefab.gameObject);
@@ -239,7 +237,6 @@ public class AudioWindow : EditorWindow
         Color oldColor = GUI.color;
 
         EditorGUILayout.BeginHorizontal();
-
 
         audioItem.Type = (AudioItem.SoundType)System.Convert.ToInt32(EditorGUILayout.EnumPopup(audioItem.Type));
 

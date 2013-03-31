@@ -217,6 +217,7 @@ public partial class AudioManager : MonoBehaviour
         }
     }
 
+    #region Play sound by name overloads
     /// <summary>
     /// Plays a sound matching the given name.
     /// </summary>
@@ -224,6 +225,120 @@ public partial class AudioManager : MonoBehaviour
     /// The name of the audio clip.
     /// </param>
     public static void PlaySound(string name)
+    {
+        // Play the sound, and omit explicit volume
+        PlaySound(name, null, null, null);
+    }
+
+    /// <summary>
+    /// Plays a sound matching the given name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the audio clip.
+    /// </param>
+    /// <param name="volume">
+    /// The volume factor, from 0 to 1.
+    /// </param>
+    public static void PlaySound(string name, float volume)
+    {
+        PlaySound(name, volume, null, null);
+    }
+
+    /// <summary>
+    /// Plays a sound matching the given name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the audio clip.
+    /// </param>
+    /// <param name="volume">
+    /// The volume factor, from 0 to 1.
+    /// </param>
+    /// <param name="position">
+    /// Where to place the audio source.
+    /// </param>
+    public static void PlaySound(string name, float volume, Vector3 position)
+    {
+        PlaySound(name, volume, position, null);
+    }
+
+    /// <summary>
+    /// Plays a sound matching the given name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the audio clip.
+    /// </param>
+    /// <param name="position">
+    /// Where to place the audio source.
+    /// </param>
+    public static void PlaySound(string name, Vector3 position)
+    {
+        PlaySound(name, null, position, null);
+    }
+
+    /// <summary>
+    /// Plays a sound matching the given name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the audio clip.
+    /// </param>
+    /// <param name="position">
+    /// Where to place the audio source.
+    /// </param>
+    /// <param name="parent">
+    /// The used audio source will be a child of this transform.
+    /// </param>
+    public static void PlaySound(string name, Vector3 position, Transform parent)
+    {
+        PlaySound(name, null, position, parent);
+    }
+
+    /// <summary>
+    /// Plays a sound matching the given name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the audio clip.
+    /// </param>
+    /// <param name="volume">
+    /// The volume factor, from 0 to 1.
+    /// </param>
+    /// <param name="parent">
+    /// The used audio source will be a child of this transform.
+    /// </param>
+    public static void PlaySound(string name, float volume, Transform parent)
+    {
+        PlaySound(name, volume, null, parent);
+    }
+
+    /// <summary>
+    /// Plays a sound matching the given name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the audio clip.
+    /// </param>
+    /// <param name="parent">
+    /// The used audio source will be a child of this transform.
+    /// </param>
+    public static void PlaySound(string name, Transform parent)
+    {
+        PlaySound(name, null, null, parent);
+    }
+
+    /// <summary>
+    /// Plays a sound matching the given name.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the audio clip.
+    /// </param>
+    /// <param name="volume">
+    /// The volume factor, from 0 to 1.
+    /// </param>
+    /// <param name="position">
+    /// Where to place the audio source.
+    /// </param>
+    /// <param name="parent">
+    /// The used audio source will be a child of this transform.
+    /// </param>
+    public static void PlaySound(string name, float? volume, Vector3? position, Transform parent)
     {
         // Find an audio item matching the given name
         AudioItem item = instance.AudioItems.FirstOrDefault(a => a.Name == name);
@@ -233,9 +348,10 @@ public partial class AudioManager : MonoBehaviour
             throw new NullReferenceException("No audio items matched the given name");
         }
 
-        // Play the sound, and omit explicit volume
-        instance.PlaySound(item, null);
-    }
+        // Play the sound
+        instance.PlaySound(item, volume, position, parent);
+    } 
+    #endregion
 
     /// <summary>
     /// Stops a sound matching the given name.
@@ -364,7 +480,7 @@ public partial class AudioManager : MonoBehaviour
     /// </param>
     public void PlaySound(AudioItem audioItem)
     {
-        PlaySound(audioItem, null);
+        PlaySound(audioItem, null, null, null);
     }
 
     /// <summary>
@@ -376,7 +492,7 @@ public partial class AudioManager : MonoBehaviour
     /// <param name="volume">
     /// Volume factor from 0 to 1. (null means audio items standard volume)
     /// </param>
-    public void PlaySound(AudioItem audioItem, float? volume)
+    public void PlaySound(AudioItem audioItem, float? volume, Vector3? position, Transform parent)
     {
         RemoveAllMissingSources();
         
@@ -384,7 +500,7 @@ public partial class AudioManager : MonoBehaviour
         var audioSource = new AudioSource();
         bool didFindAudioSource = false;
 
-        // Loops through all audio sources we've created so far
+        // Loops through all audio sources we've created so far TODO: check for destroyed audio sources
         foreach (AudioSource source in audioSources)
         {
             // If an existing audio source is not playing any sound, select that one
@@ -414,6 +530,12 @@ public partial class AudioManager : MonoBehaviour
             audioSources.Add(audioSource);
         }
 
+        // Assign position, default to origin
+        audioSource.transform.position = (position ?? Vector3.zero);
+
+        // Assign parent, null means no parent
+        audioSource.transform.parent = parent;
+
         // Assign the clip to the selected audio source
         audioSource.clip = audioItem.GetClip();
 
@@ -430,7 +552,7 @@ public partial class AudioManager : MonoBehaviour
     private static void PlaySound (int id, float? volume)
     {
         // Use the audio manager instance to play a sound
-        instance.PlaySound(instance.AudioItems[id], volume ?? instance.AudioItems[id].Volume);
+        instance.PlaySound(instance.AudioItems[id], volume ?? instance.AudioItems[id].Volume, null, null);
     }
 
     private static void StopSound(int id)
