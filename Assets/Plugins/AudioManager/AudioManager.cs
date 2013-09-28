@@ -25,7 +25,7 @@ public partial class AudioManager : MonoBehaviour
         get { return instance.Settings.MasterVolume; }
         set
         {
-            instance.Settings.MasterVolume = Mathf.Clamp(value, 0, 1);
+            instance.Settings.MasterVolume = Mathf.Clamp01(value);
 
             instance.UpdateVolumeSettings();
         }
@@ -36,7 +36,7 @@ public partial class AudioManager : MonoBehaviour
         get { return instance.Settings.MusicVolume; }
         set
         {
-            instance.Settings.MusicVolume = Mathf.Clamp(value, 0, 1);
+            instance.Settings.MusicVolume = Mathf.Clamp01(value);
 
             instance.UpdateVolumeSettings();
         }
