@@ -1,7 +1,4 @@
-﻿using UnityEditor;
-using UnityEngine;
-
-[System.Serializable]
+﻿[System.Serializable]
 public class AudioManagerSettings
 {
 

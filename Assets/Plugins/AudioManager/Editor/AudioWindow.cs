@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System.IO;
 using UnityEngine;
 using UnityEditor;
@@ -30,7 +31,7 @@ public class AudioWindow : EditorWindow
             {
                 // Load asset
                 audioManagerPrefab =
-                    (Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof (GameObject))
+                    (Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject))
                      as GameObject).GetComponent<AudioManager>();
             }
 
@@ -669,3 +670,4 @@ public class AudioWindow : EditorWindow
         }
     }
 }
+#endif
