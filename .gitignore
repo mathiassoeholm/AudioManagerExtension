@@ -123,3 +123,4 @@ UpgradeLog*.XML
 Assets/SoundsDemo.cs
 *.pidb
 *.userprefs
+Builds/
