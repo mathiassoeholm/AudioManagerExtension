@@ -9,33 +9,27 @@ using System.Linq.Expressions;
 
 public class AudioWindow : EditorWindow
 {
-    private Vector2 scrollPos;
+    private static AudioWindow _window;
 
-    private AudioItem itemToRemove;
+    private Vector2 _scrollPos;
 
-    private static AudioWindow window;
+    private AudioItem _itemToRemove;
 
-    private AudioManager audioManagerInScene;
+    private AudioManager _audioManagerInScene;
+    private AudioManager _audioManagerPrefab;
 
-    private AudioManager audioManagerPrefab;
+    private int _selectedAudioIndex;
 
-    private int selectedAudioIndex;
-
-    private bool isInEditor;
+    private bool _isInEditor;
 
     private AudioManager AudioManagerPrefab
     {
         get
         {
-            if (audioManagerPrefab == null)
-            {
-                // Load asset
-                audioManagerPrefab =
-                    (Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof(GameObject))
-                     as GameObject).GetComponent<AudioManager>();
-            }
-
-            return audioManagerPrefab;
+            return _audioManagerPrefab ??
+                   (_audioManagerPrefab =
+                       (Resources.LoadAssetAtPath("Assets/Plugins/AudioManager/AudioManager.prefab", typeof (GameObject))
+                           as GameObject).GetComponent<AudioManager>());
         }
     }
 
@@ -44,10 +38,10 @@ public class AudioWindow : EditorWindow
 	static void Init ()
     {
         // Get existing open window or if none, make a new one:
-        window = (AudioWindow)GetWindow(typeof(AudioWindow));
+        _window = (AudioWindow)GetWindow(typeof(AudioWindow));
 
         // Set window title
-        window.title = "Audio Manager";
+        _window.title = "Audio Manager";
 	}
 
     private void OnGameStart()
@@ -62,26 +56,25 @@ public class AudioWindow : EditorWindow
 
     private void Update()
     {
-
-        if (isInEditor && (EditorApplication.isPlaying || EditorApplication.isPaused))
+        if (_isInEditor && (EditorApplication.isPlaying || EditorApplication.isPaused))
         {
             OnGameStart();
         }
-        else if (!isInEditor && !EditorApplication.isPaused && !EditorApplication.isPlaying)
+        else if (!_isInEditor && !EditorApplication.isPaused && !EditorApplication.isPlaying)
         {
             OnGameStop();
         }
         
         // Check if there is an audio manager in the scene
-        if (audioManagerInScene == null)
+        if (_audioManagerInScene == null)
         {
             // Check if amount of audio managers in the scene is correct
-            Object[] audioManagers = FindSceneObjectsOfType(typeof(AudioManager));
+            Object[] audioManagers = FindObjectsOfType(typeof(AudioManager));
 
             if (audioManagers.Length == 0)
             {
                 // Instantiate an audiomanager in the scene
-                audioManagerInScene = (PrefabUtility.InstantiatePrefab(AudioManagerPrefab.gameObject) as GameObject).GetComponent<AudioManager>();
+                _audioManagerInScene = (PrefabUtility.InstantiatePrefab(AudioManagerPrefab.gameObject) as GameObject).GetComponent<AudioManager>();
             }
             else if (audioManagers.Length >= 1)
             {
@@ -90,7 +83,7 @@ public class AudioWindow : EditorWindow
                     if (i == 0)
                     {
                         // Assign to found audio manager
-                        audioManagerInScene = (audioManagers[i] as AudioManager);
+                        _audioManagerInScene = (audioManagers[i] as AudioManager);
                     }
                     else
                     {
@@ -102,25 +95,23 @@ public class AudioWindow : EditorWindow
         }
         else
         {
-            PrefabUtility.ResetToPrefabState(audioManagerInScene);
+            PrefabUtility.ResetToPrefabState(_audioManagerInScene);
             //ApplySettingsToAudioManagerInstance();
         }
 
-        isInEditor = !EditorApplication.isPaused && !EditorApplication.isPlaying;
+        _isInEditor = !EditorApplication.isPaused && !EditorApplication.isPlaying;
     }
 
     private void OnGUI()
     {
-
-
-        if (audioManagerInScene == null)
+        if (_audioManagerInScene == null)
         {
             return;
         }
 
         if (EditorApplication.isPlaying || EditorApplication.isPaused)
         {
-            GUILayout.Label("Editing in play mode is not supported :-(");
+            GUILayout.Label("Editing in play mode is not supported!");
 
             return;
         }
@@ -193,7 +184,7 @@ public class AudioWindow : EditorWindow
 
         if (AudioManagerPrefab.AudioItems.Length > 0)
         {
-            selectedAudioIndex = EditorGUILayout.Popup(selectedAudioIndex,
+            _selectedAudioIndex = EditorGUILayout.Popup(_selectedAudioIndex,
                                                        AudioManagerPrefab.AudioItems.Select(a => a.Name).ToArray());
         }
         else
@@ -210,7 +201,7 @@ public class AudioWindow : EditorWindow
 
         if (AudioManagerPrefab.AudioItems.Length > 0)
         {
-            DrawAudioItemGui(AudioManagerPrefab.AudioItems[selectedAudioIndex]);
+            DrawAudioItemGui(AudioManagerPrefab.AudioItems[_selectedAudioIndex]);
         }
 
         if (GUI.changed)
@@ -219,13 +210,6 @@ public class AudioWindow : EditorWindow
 
             Repaint();
         }
-    }
-
-    private void ApplySettingsToAudioManagerInstance()
-    {
-        // Clone audio items and settings from prefab to scene instance
-        audioManagerInScene.AudioItems = audioManagerPrefab.AudioItems;
-        audioManagerInScene.Settings = audioManagerPrefab.Settings;
     }
 
     private void DrawAudioItemGui(AudioItem audioItem)
@@ -242,13 +226,13 @@ public class AudioWindow : EditorWindow
         audioItem.Type = (AudioItem.SoundType)System.Convert.ToInt32(EditorGUILayout.EnumPopup(audioItem.Type));
 
         // If the sound is playing, allow us to stop it
-        if (audioManagerInScene.IsAudioItemPlaying(audioItem))
+        if (_audioManagerInScene.IsAudioItemPlaying(audioItem))
         {
             isPlaying = true;
             
             if (GUILayout.Button("Stop"))
             {
-                audioManagerInScene.StopAudioItem(audioItem);
+                _audioManagerInScene.StopAudioItem(audioItem);
 
                 isPlaying = false;
             }
@@ -256,20 +240,20 @@ public class AudioWindow : EditorWindow
         else if (GUILayout.Button("Play"))
         {
             // Add any potential leaked audio sources
-            audioManagerInScene.AddLeakedAudioSources();
+            _audioManagerInScene.AddLeakedAudioSources();
             
-            audioManagerInScene.PlaySound(audioItem);
+            _audioManagerInScene.PlaySound(audioItem);
         }
 
         // Make sure this audio item is not currently being removed
-        if (audioItem != itemToRemove)
+        if (audioItem != _itemToRemove)
         {
             // Change color to red
             GUI.color = new Color(1, 0.3f, 0.3f);
 
             if (GUILayout.Button("Remove"))
             {
-                itemToRemove = audioItem;
+                _itemToRemove = audioItem;
             }
 
             // Reset color
@@ -280,7 +264,7 @@ public class AudioWindow : EditorWindow
             // Don't remove if nope is pressed
             if (GUILayout.Button("Nope"))
             {
-                itemToRemove = null;
+                _itemToRemove = null;
             }
 
             // Change color to red
@@ -440,7 +424,7 @@ public class AudioWindow : EditorWindow
 
             if (isPlaying)
             {
-                audioManagerInScene.UpdateAudioSourcesWithNewSettings(audioItem);
+                _audioManagerInScene.UpdateAudioSourcesWithNewSettings(audioItem);
             }
         }
     }
@@ -452,8 +436,6 @@ public class AudioWindow : EditorWindow
         
         GUI.color = new Color(1f, 1f, 1);
 
-        //Rect seperator = GUILayoutUtility.GetRect(0, 20, GUILayout.ExpandWidth(true));
-        //GUI.Box(seperator, text);
         EditorGUILayout.LabelField("- " + text, EditorStyles.largeLabel);
 
         // Reset color
@@ -467,7 +449,9 @@ public class AudioWindow : EditorWindow
     private void OnLostFocus()
     {
         // Cancel removing an item when window loses focus
-        itemToRemove = null;
+        _itemToRemove = null;
+
+        // TODO: Stop playing sound here
 
         // Repaint the window
         Repaint();
@@ -482,27 +466,27 @@ public class AudioWindow : EditorWindow
     private bool AddAudioFile(AudioClip audioClip)
     {
         // Make sure the file isn't already added
-        if (audioManagerPrefab.AudioItems.Select(item => item.Clips[0]).Contains(audioClip))
+        if (_audioManagerPrefab.AudioItems.Select(item => item.Clips[0]).Contains(audioClip))
         {
             // Return if the file is already in the list
             return false;
         }
 
         // Add an audio item to the array
-        List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
+        List<AudioItem> audioItems = _audioManagerPrefab.AudioItems.ToList();
 
         AudioClip[] clip = {audioClip};
 
-        AudioItem newAudiItem = new AudioItem
-            {
-                Clips = clip,
-                Volume = 1,
-                Name = audioClip.name,
-                Type = audioClip.length > 8 ? AudioItem.SoundType.Music : AudioItem.SoundType.SoundEffect
-            };
+        var newAudiItem = new AudioItem
+        {
+            Clips = clip,
+            Volume = 1,
+            Name = audioClip.name,
+            Type = audioClip.length > 8 ? AudioItem.SoundType.Music : AudioItem.SoundType.SoundEffect
+        };
 
         audioItems.Add(newAudiItem);
-        audioManagerPrefab.AudioItems = audioItems.ToArray();
+        _audioManagerPrefab.AudioItems = audioItems.ToArray();
 
         Debug.Log("Added " + audioClip.name);
 
@@ -518,19 +502,19 @@ public class AudioWindow : EditorWindow
     public void RemoveAudioItem(AudioItem item)
     {
         // Stop any sources with this sound from playing
-        audioManagerInScene.StopAudioItem(item);
+        _audioManagerInScene.StopAudioItem(item);
 
         foreach (AudioClip clip in item.Clips)
         {
-            audioManagerInScene.RemoveAllAudioSourcesWithClip(clip);
+            _audioManagerInScene.RemoveAllAudioSourcesWithClip(clip);
         }
 
         // Remove an audio item from the array
-        List<AudioItem> audioItems = audioManagerPrefab.AudioItems.ToList();
+        List<AudioItem> audioItems = _audioManagerPrefab.AudioItems.ToList();
         audioItems.Remove(item);
-        audioManagerPrefab.AudioItems = audioItems.ToArray();
+        _audioManagerPrefab.AudioItems = audioItems.ToArray();
 
-        selectedAudioIndex = 0;
+        _selectedAudioIndex = 0;
 
         ApplyChanges();
     }
@@ -555,8 +539,7 @@ public class AudioWindow : EditorWindow
     private void GenerateCode()
     {
 
-#if UNITY_WEBPLAYER
-#else
+        #if !UNITY_WEBPLAYER
         // Generate AudioManager methods
         using (TextWriter writer = File.CreateText(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs"))
         {
@@ -610,14 +593,14 @@ public class AudioWindow : EditorWindow
         // Reimport generated file
         AssetDatabase.ImportAsset(@"Assets\Plugins\AudioManager\AudioManagerGenerated.cs", ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
 
-#endif
+        #endif
     }
 
     private void RemoveClipFromCollection(int itemIndex)
     {
-        AudioItem selectedAudioItem = AudioManagerPrefab.AudioItems[selectedAudioIndex];
+        AudioItem selectedAudioItem = AudioManagerPrefab.AudioItems[_selectedAudioIndex];
         
-        List<AudioClip> clips = new List<AudioClip>(AudioManagerPrefab.AudioItems[selectedAudioIndex].Clips);
+        var clips = new List<AudioClip>(AudioManagerPrefab.AudioItems[_selectedAudioIndex].Clips);
 
         clips.RemoveAt(itemIndex);
 
@@ -632,9 +615,9 @@ public class AudioWindow : EditorWindow
             return;  
         }
         
-        AudioItem selectedAudioItem = AudioManagerPrefab.AudioItems[selectedAudioIndex];
+        AudioItem selectedAudioItem = AudioManagerPrefab.AudioItems[_selectedAudioIndex];
 
-        List<AudioClip> clipsToAdd = new List<AudioClip>(selectedAudioItem.Clips);
+        var clipsToAdd = new List<AudioClip>(selectedAudioItem.Clips);
 
         foreach (Object obj in Selection.objects)
         {

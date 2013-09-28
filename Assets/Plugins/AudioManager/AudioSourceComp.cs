@@ -1,18 +1,17 @@
 using UnityEngine;
-using System.Collections;
 
 public class AudioSourceComp : MonoBehaviour
 {
-    private bool doDestroyOnLoad;
+    private bool _doDestroyOnLoad;
 
-    private AudioSource source;
+    private AudioSource _source;
 
-    public float volume;
-    public float originVolume;
+    public float Volume;
+    public float OriginVolume;
 
     public bool DoDestroyOnLoad
     {
-        get { return doDestroyOnLoad; }
+        get { return _doDestroyOnLoad; }
         set
         {
             if (!value)
@@ -20,13 +19,13 @@ public class AudioSourceComp : MonoBehaviour
                 DontDestroyOnLoad(gameObject);
             }
 
-            doDestroyOnLoad = value;
+            _doDestroyOnLoad = value;
         }
     }
 
 	void Awake ()
     {
-        if (doDestroyOnLoad)
+        if (_doDestroyOnLoad)
 	    {
 	        Destroy(gameObject);
 	    }
@@ -34,28 +33,28 @@ public class AudioSourceComp : MonoBehaviour
 
     public void PreInitialize()
     {
-        source = audio;
-        originVolume = source.volume;
+        _source = audio;
+        OriginVolume = _source.volume;
     }
 
     public void Initialize()
     {
-        volume = source.volume;
+        Volume = _source.volume;
     }
 
     public void UpdateVolume(float masterVolume, float otherFactor)
     {
-        volume = originVolume * masterVolume * otherFactor;
-        source.volume = volume;
+        Volume = OriginVolume * masterVolume * otherFactor;
+        _source.volume = Volume;
     }
 
     public void Mute()
     {
-        source.volume = 0;
+        _source.volume = 0;
     }
 
     public void UnMute()
     {
-        source.volume = volume;
+        _source.volume = Volume;
     }
 }

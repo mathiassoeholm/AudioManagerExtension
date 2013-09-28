@@ -1,7 +1,6 @@
 ﻿[System.Serializable]
 public class AudioManagerSettings
 {
-
     public bool IsAllMuted;
     public bool IsMusicMuted;
     public bool IsSoundEffectsMuted;
